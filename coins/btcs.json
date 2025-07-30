@@ -1,0 +1,32 @@
+{
+  "name": "BitcoinSilver",
+  "symbol": "BTCS",
+  "algorithm": "sha256",
+  "reward": "POW",
+  "rpc": {
+    "host": "127.0.0.1",
+    "port": 10013,
+    "user": "test",
+    "password": "test"
+  },
+  "txMessages": false,
+  "segwit": true,
+  "taproot": true,
+  "coinbaseTxVersion": 2,
+  "hasBlockReward": true,
+  "blockVersion": 536870912,
+  "default_witness_commitment": true,
+  "shareDifficultyTarget": "target",
+  "rpcTimeout": 5000,
+  "addressValidation": {
+    "validateWorkerUsername": true,
+    "addressPrefix": "bs1",
+    "minLength": 30,
+    "maxLength": 42
+  },
+    "blockTime": 5,
+    "explorer": {
+        "txURL": "http://explorer.btcs.pools4mining.com:3001/tx/",
+        "blockURL": "http://explorer.btcs.pools4mining.com:3001/block/"
+    }
+}
