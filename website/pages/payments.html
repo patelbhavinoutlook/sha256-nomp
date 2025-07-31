@@ -33,7 +33,8 @@
 </style>
 {{ function capitalizeFirstLetter(t){return t.charAt(0).toUpperCase()+t.slice(1)} }}
 {{ function readableDate(a) {
-var d = new Date(parseInt(a));
+  var d = new Date(parseInt(a));
+  return d.toLocaleString();
 } }}
 {{ for(var pool in it.stats.pools) { }}
 <div id="topPool">
