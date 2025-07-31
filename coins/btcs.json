@@ -24,7 +24,7 @@
     "minLength": 30,
     "maxLength": 42
   },
-    "blockTime": 12,
+    "blockTime": 5,
     "explorer": {
         "txURL": "http://explorer.btcs.pools4mining.com:3001/tx/",
         "blockURL": "http://explorer.btcs.pools4mining.com:3001/block/"
