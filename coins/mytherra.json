@@ -24,7 +24,7 @@
     "minLength": 30,
     "maxLength": 42
   },
-    "blockTime": 300,
+    "blockTime": 6,
     "explorer": {
         "txURL": "https://explorer.mytherrablockchain.org/tx/",
         "blockURL": "https://explorer.mytherrablockchain.org/block/"
