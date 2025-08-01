@@ -3,6 +3,7 @@
   "symbol": "BTCS",
   "algorithm": "sha256",
   "reward": "POW",
+  "version_mask": "0x20000000",
   "rpc": {
     "host": "127.0.0.1",
     "port": 10013,
