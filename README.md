@@ -22,6 +22,8 @@ If your pool uses ZNY-NOMP let us know and we will list your website here.
 ### Some pools using ZNY-NOMP or node-stratum-pool module:
 
 * [mofumofu.me - BitZeny Mining Pool](https://zny.mofumofu.me/)
+* [sha256-mining.go.ro Mining ⚒️ 
+Pool](https://sha256-mining.go.ro)
 
 Usage
 =====
