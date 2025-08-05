@@ -297,117 +297,99 @@ d.toString().match(/GMT([+-]\d{4})/)[0].replace('GMT', 'UTC') + ' ' +
 </div>
 
 <div id="bottomCharts">
-    <div class=" " chartWrapper" id="bottomCharts{{=pool}}" style="text-align:center;">
+    <div class="chartWrapper" id="bottomCharts{{=pool}}" style="text-align:center;">
         <div class="chartWrapper" style="text-align:center;">
             <div class="chartLabel">Finders of the last {{=blockscomb.length}} blocks</div>
             <div class="hidden" id="tooltip{{=pool}}">
-                <p><span id="value{{=pool}}"></span> blocks found by <span id="finderr{{=pool}}"></span></p>
+                <p>
+                    <span id="value{{=pool}}"></span> blocks found by
+                    <span id="finderr{{=pool}}"></span>
+                </p>
             </div>
-            <div class="chartHolder" id="pie{{=pool}}"><svg id="blocksPie{{=pool}}"
-                    style="display: block; margin: auto; text-align:center;"></svg></div>
+            <div class="chartHolder" id="pie{{=pool}}">
+                <svg id="blocksPie{{=pool}}" style="display: block; margin: auto; text-align:center;"></svg>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-
     var groupedByFinder = {};
     var data = [];
 
     for (var i = 0; i < blockscomb.length; i++) {
-        finder = blockscomb[i][3]; // if other doesn 't already have a property for the current letter
-        // create it and assign it to a new empty array
-        if (!(finder in groupedByFinder))
+        var finder = blockscomb[i][3];
+        if (!(finder in groupedByFinder)) {
             groupedByFinder[finder] = [];
-
+        }
         groupedByFinder[finder].push(blockscomb[i]);
     }
 
-    Object.keys(groupedByFinder).forEach(function (i) {
-        var obj = {};
-        obj.label = i
-        obj.value = groupedByFinder[i].length
-        data.push(obj)
+    Object.keys(groupedByFinder).forEach(function (key) {
+        data.push({ label: key, value: groupedByFinder[key].length });
     });
 
-    console.log(JSON.stringify(data))
-
-    var w = 400;
-    var h = 400;
-    var r = h / 2;
-    var legendRectSize = 18;
-    var legendSpacing = 5;
+    var w = 400,
+        h = 400,
+        r = h / 2,
+        legendRectSize = 18,
+        legendSpacing = 5;
 
     var color = d3.scale.category20c();
-    var div = d3.select("#pie{{=pool}}").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0);
 
-    var vis = d3.select('#blocksPie{{=pool}}')
+    var vis = d3.select("#blocksPie{{=pool}}")
         .data([data])
         .attr("width", 1000)
         .attr("height", h)
-        .attr("style", "display: block; margin: auto;")
         .attr("preserveAspectRatio", "xMidYMin")
-        .append("svg:g")
+        .append("g")
         .attr("transform", "translate(" + r + "," + r + ")");
 
-
     var pie = d3.layout.pie().value(function (d) { return d.value; });
-
-    // declare an arc generator function
     var arc = d3.svg.arc().outerRadius(r);
 
-    // select paths, use arc generator to draw
     var arcs = vis.selectAll("g.slice{{=pool}}")
         .data(pie)
         .enter()
-        .append("svg:g")
+        .append("g")
         .attr("class", "slice{{=pool}}")
-        .attr("id", "slice")
         .on("mouseover", function (d) {
             d3.select("#tooltip{{=pool}}")
                 .style("left", d3.event.pageX + "px")
                 .style("top", d3.event.pageY + "px")
-                .style("opacity", 1)
-                .select("#value{{=pool}}")
-                .text(d.data.value);
-            d3.select("#tooltip{{=pool}}")
-                .select("#finderr{{=pool}}")
-                .text(d.data.label);
+                .style("opacity", 1);
+            d3.select("#value{{=pool}}").text(d.data.value);
+            d3.select("#finderr{{=pool}}").text(d.data.label);
         });
 
-    arcs.append("svg:path")
+    arcs.append("path")
         .attr("fill", function (d, i) {
             return color(i);
         })
-        .attr("d", function (d) {
-            return arc(d);
-        });
+        .attr("d", arc);
 
-    var legend = vis.selectAll('.legend')
+    var legend = vis.selectAll(".legend{{=pool}}")
         .data(color.domain())
         .enter()
-        .append('g')
-        .attr('class', 'legend')
-        .attr('id', "{{=JSON.stringify(pool)}}")
-        .attr('transform', function (d, i) {
+        .append("g")
+        .attr("class", "legend{{=pool}}")
+        .attr("transform", function (d, i) {
             var height = legendRectSize + legendSpacing;
             var offset = height * color.domain().length / 2;
             var horz = 12 * legendRectSize;
             var vert = i * height;
-            return 'translate(' + horz + ',' + vert + ')';
+            return "translate(" + horz + "," + vert + ")";
         });
 
-    legend.append('rect')
-        .attr('width', legendRectSize)
-        .attr('height', legendRectSize)
-        .style('fill', color)
-        .style('stroke', color);
+    legend.append("rect")
+        .attr("width", legendRectSize)
+        .attr("height", legendRectSize)
+        .style("fill", color)
+        .style("stroke", color);
 
-    legend.append('text')
-        .attr('x', legendRectSize + legendSpacing)
-        .attr('y', legendRectSize - legendSpacing)
+    legend.append("text")
+        .attr("x", legendRectSize + legendSpacing)
+        .attr("y", legendRectSize - legendSpacing)
         .text(function (d, i) {
             return data[i].label;
         });
