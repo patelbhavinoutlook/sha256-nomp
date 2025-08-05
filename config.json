@@ -19,7 +19,7 @@
         "tcpProxyProtocol": false,
         "banning": {
             "enabled": true,
-            "time": 600,
+            "time": 300,
             "invalidPercent": 50,
             "checkThreshold": 500,
             "purgeInterval": 300
@@ -33,12 +33,12 @@
     "website": {
         "enabled": true,
         "host": "172.26.181.103",
-        "port": 50300,
+        "port": 80,
         "stratumHost": "myhost.go.ro",
         "stats": {
-            "updateInterval": 300,
+            "updateInterval": 100,
             "historicalRetention": 28800,
-            "hashrateWindow": 600
+            "hashrateWindow": 300
         },
         "adminCenter": {
             "enabled": false,
