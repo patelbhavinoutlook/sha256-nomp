@@ -39,7 +39,8 @@ function buildChartData(){
             });
             if (pName in statData[i].pools){
                 a.hashrate.push([time, statData[i].pools[pName].hashrate]);
-                a.pending.push([time, statData[i].pools[pName].blocks.pending]);
+				var totalPending = statData[i].pools[pName].blocks.pending || 0;
+				a.pending.push([time, totalPending]);
             }
             else{
                 a.hashrate.push([time, 0]);
@@ -211,7 +212,11 @@ statsSource.addEventListener('message', function(e){
             for (var i = 0; i < poolPendingData.length; i++) {
                 if (poolPendingData[i].key === pool) {
                     poolPendingData[i].values.shift();
-                    poolPendingData[i].values.push([time, pool in stats.pools ? stats.pools[pool].blocks.pending : 0]);
+                    var totalPending = 0;
+					if (pool in stats.pools) {
+						totalPending = stats.pools[pool].blocks.pending;
+					}
+					poolPendingData[i].values.push([time, totalPending]);
                     break;
                 }
             }

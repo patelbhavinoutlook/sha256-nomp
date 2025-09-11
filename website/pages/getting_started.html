@@ -67,12 +67,60 @@
         color: #f69b3a;
     }
 
-    .miningOption:first-child{
-        background-color: #0eafc7;
+    #coinGlowTrigger{
+        background-color: #1f2434;
+		 border-radius: 10px;
     }
-    .miningOption:last-child{
-        background-color: #b064e1;
+    #nompAppDownload{
+        background-color: #1f2434;
+		 border-radius: 10px;
     }
+	#connectionDetails{
+        background-color: #1f2434;
+		 border-radius: 10px;
+    }
+	#miningConfigGuide {
+	  display: flex;
+	  flex-direction: column;
+	  align-items: center;
+	  text-align: left;
+	  padding: 25px;
+	  max-width: 850px;
+	  margin: 0 auto;
+	  background-color: #f0f4f8;
+	  border-radius: 12px;
+	  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+	  font-family: 'Segoe UI', sans-serif;
+	}
+	.configOptionNum {
+	  font-size: 2em;
+	  font-weight: bold;
+	  margin-bottom: 10px;
+	  color: #333;
+	}
+
+	.configTitle {
+	  font-size: 1.5em;
+	  font-weight: bold;
+	  margin-bottom: 20px;
+	  color: #2c3e50;
+	}
+
+	.configDetails p {
+	  margin-bottom: 20px;
+	}
+
+	.configDetails ul {
+	  margin-top: 5px;
+	  padding-left: 20px;
+	}
+
+	.configDetails code {
+	  background-color: #1f2434;
+	  padding: 2px 6px;
+	  border-radius: 4px;
+	  font-family: monospace;
+	}
     .miningOptionNum{
         font-size: 6em;
         padding-right: 20px;
@@ -129,6 +177,7 @@
         margin-left: -375px;
         position: absolute;
         background-color: #f06350;
+		 border-radius: 10px;
     }
     #coinInfo .coinInfoName{
         text-transform: capitalize;
@@ -178,6 +227,16 @@
     #coinInfoClose:hover{
         color: #50f0e3;
     }
+	.warning {
+	text-align: center;
+    color: green;
+    font-weight: bold;
+    background-color: #ffe6e6;
+    padding: 10px;
+    border: 1px solid blue;
+    border-radius: 5px;
+  }
+
 </style>
 
 <div id="holder">
@@ -230,21 +289,156 @@
         <a href="#" class="miningOption" id="nompAppDownload">
             <div class="miningOptionNum">1.</div>
             <div class="miningOptionInstructions">
-                <div>Download NOMP App</div>
-                <div>Our preconfigured app makes mining that easy</div>
+                <div>Point your miner here to mine sha coins</div>
+		<div style="background-color: #1f2434; display: inline-block; padding: 5px;">...or just rent one...
+  			<img src="/static/mrr-logo2.png" width="200" height="100" alt="MininRigRentals" />
+		</div>
             </div>
         </a>
         <div id="orHolder">
             <div id="orLine"></div>
-            <div id="orText">or</div>
         </div>
         <a href="#" class="miningOption" id="coinGlowTrigger">
             <div class="miningOptionNum">2.</div>
             <div class="miningOptionInstructions">
                 <div>Select a coin for connection details</div>
-                <div>Configurations for each coin are available for advanced miners</div>
+					<div class="warning">
+					  🚀 ASICBoost support ENABLED!
+					</div>
+                <div>Happy mining !</div>
             </div>
         </a>
+		<div id="orHolder">
+      			<div id="orLine"></div>
+		</div>
+<div class="configOption" id="miningConfigGuide">
+    <div class="configTitle">Connection Details</div>
+    <div class="configDetails">
+        
+        <!-- Option 1 -->
+        <div class="config-item">
+            <div class="config-header">
+                <span class="config-emoji">🎯</span>
+                <span class="config-number">1.</span>
+                <span class="config-code">d_init</span>
+                <span class="config-arrow">→</span>
+                <span class="config-label">Custom Initial Difficulty</span>
+            </div>
+            <div class="config-desc">Sets the miner's starting difficulty manually.</div>
+            <div class="config-example">
+                <div class="example-label">Example:</div>
+                <div>Username: <span class="code-inline">wallet-address.myworker</span></div>
+                <div>Password: <span class="code-inline">d=25000</span></div>
+            </div>
+            <div class="config-effect">
+                <div class="effect-label">Effect:</div>
+                <ul>
+                    <li>Starts with difficulty of 25000</li>
+                    <li>Useful for ASICs needing higher initial difficulty</li>
+                    <li>Overrides pool's default starting difficulty</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Option 2 -->
+        <div class="config-item">
+            <div class="config-header">
+                <span class="config-emoji">📉</span>
+                <span class="config-number">2.</span>
+                <span class="config-code">min_diff</span>
+                <span class="config-arrow">→</span>
+                <span class="config-label">Minimum Difficulty for VarDiff</span>
+            </div>
+            <div class="config-desc">Sets the lowest difficulty the pool will assign during VarDiff.</div>
+            <div class="config-example">
+                <div class="example-label">Example:</div>
+                <div>Username: <span class="code-inline">wallet-address.myworker</span></div>
+                <div>Password: <span class="code-inline">md=10000</span></div>
+            </div>
+            <div class="config-effect">
+                <div class="effect-label">Effect:</div>
+                <ul>
+                    <li>VarDiff won't drop below 10000</li>
+                    <li>Prevents flooding with tiny shares</li>
+                    <li>Ideal for high-hashrate miners like Antminer S19</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Option 3 -->
+        <div class="config-item">
+            <div class="config-header">
+                <span class="config-emoji">🚀</span>
+                <span class="config-number">3.</span>
+                <span class="config-code">mode=solo</span>
+                <span class="config-arrow">→</span>
+                <span class="config-label">Solo Mining Mode</span>
+            </div>
+            <div class="config-desc">Treats miner as solo—full block reward if a block is found.</div>
+            <div class="config-example">
+                <div class="example-label">Example:</div>
+                <div>Username: <span class="code-inline">wallet-address.myworker</span></div>
+                <div>Password: <span class="code-inline">m=solo</span></div>
+            </div>
+            <div class="config-effect">
+                <div class="effect-label">Effect:</div>
+                <ul>
+                    <li>Miner gets full block reward</li>
+                    <li>Great for miners who want to gamble on blocks</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Option 4 -->
+        <div class="config-item">
+            <div class="config-header">
+                <span class="config-emoji">📊</span>
+                <span class="config-number">4.</span>
+                <span class="config-code">mode=prop</span>
+                <span class="config-arrow">→</span>
+                <span class="config-label">PROP Mining Mode</span>
+            </div>
+            <div class="config-desc">Enables proportional payout mode, where miners earn rewards <br>based on the number of valid shares they submit during a round.</div>
+            <div class="config-example">
+                <div class="example-label">Example:</div>
+                <div>Username: <span class="code-inline">wallet-address.myworker</span></div>
+                <div>Password: <span class="code-inline">x or leave blank</span></div>
+            </div>
+            <div class="config-effect">
+                <div class="effect-label">Effect:</div>
+                <ul>
+                    <li>Miners are rewarded proportionally to their contribution in each round</li>
+                    <li>More predictable payouts compared to solo mode</li>
+                    <li>Ideal for consistent hashpower miners who prefer steady earnings</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Option 5 -->
+        <div class="config-item">
+            <div class="config-header">
+                <span class="config-emoji">🧪</span>
+                <span class="config-number">5.</span>
+                <span class="config-label">Combining Flags</span>
+            </div>
+            <div class="config-desc">You can combine flags in the password field using commas.</div>
+            <div class="config-example">
+                <div class="example-label">Example:</div>
+                <div>Password: <span class="code-inline">d=25000,md=10000,m=solo</span></div>
+            </div>
+            <div class="config-effect">
+                <div class="effect-label">This sets:</div>
+                <ul>
+                    <li>Initial difficulty to 25000</li>
+                    <li>Minimum VarDiff to 10000</li>
+                    <li>Solo mining mode enabled</li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+</div>
+		
     </div>
 </div>
 
@@ -260,7 +454,7 @@
         </div>
         <div id="coinInfoRowValues">
             <div id="coinInfoUsername"></div>
-            <div>anything</div>
+            <div>anything ( usually x )</div>
         </div>
     </div>
 </div>
@@ -273,12 +467,12 @@
         var htmlValues = '<div class="coinInfoData">' + info.algo + '</div>';
 
         for (var port in info.ports){
-            htmlKeys += '<div class="coinInfoData">URL <span class="coinInfoSubtle">(difficulty ' + info.ports[port].diff + ')</span>:</div>';
+            htmlKeys += '<div class="coinInfoData">URL <span class="coinInfoSubtle">(vardiff ' + info.ports[port].diff + ')</span>:</div>';
             htmlValues += '<div class="coinInfoData">stratum+tcp://' + info.host + ':' + port + '</div>';
         }
 
         if (info.coin)
-            $('#coinInfoUsername').text('your ' + info.coin.name + ' wallet address');
+            $('#coinInfoUsername').text('[ your ' + info.coin.name + ' wallet address ] . [ worker name ]');
         else
             $('#coinInfoUsername').text('your public key');
         $('.coinInfoData').remove();
@@ -312,7 +506,8 @@
 
     $('#nompAppDownload').click(function(event){
         event.preventDefault();
-        alert('NOMP App development still in progress...');
+        alert('Happy mining !');
+    window.open('https://www.miningrigrentals.com/', '_blank');
         return false;
     });
 </script>

@@ -1,47 +1,52 @@
-# BitZeny - Node Open Mining Portal
-[![gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ROZ-MOFUMOFU-ME/zny-nomp)
-[![GitHub CI](https://github.com/ROZ-MOFUMOFU-ME/zny-nomp/actions/workflows/node.js.yml/badge.svg)](https://github.com/ROZ-MOFUMOFU-ME/zny-nomp/actions/workflows/node.js.yml)
-[![CircleCI](https://circleci.com/gh/ROZ-MOFUMOFU-ME/zny-nomp/tree/main.svg?style=svg)](https://circleci.com/gh/ROZ-MOFUMOFU-ME/zny-nomp/tree/main)
+# SHA256-NOMP - Node Open Mining Portal
+[![GitHub CI](https://github.com/janos-raul/sha256-nomp/actions/workflows/node.js.yml/badge.svg)](https://github.com/janos-raul/sha256-nomp/actions/workflows/node.js.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This is a Yescrypt, YesPoWer, Lyra2REv2, sha256d, Quark, x11 and more algo mining pool based off of Node Open Mining Portal.
+This is a SHA256 mining pool with solo mining support and ASICBoost with version rolling, based on Node Open Mining Portal.
   
 #### Production Usage Notice
-This is beta software. All of the following are things that can change and break an existing ZNY-NOMP setup: functionality of any feature, structure of configuration files and structure of redis data. If you use this software in production then *DO NOT* pull new code straight into production usage because it can and often will break your setup and require you to tweak things like config files or redis data. *Only tagged releases are considered stable.*
+This is beta software. All of the following are things that can change and break an existing SHA256-NOMP setup: functionality of any feature, structure of configuration files and structure of redis data. If you use this software in production then *DO NOT* pull new code straight into production usage because it can and often will break your setup and require you to tweak things like config files or redis data. *Only tagged releases are considered stable.*
 
 #### Paid Solution
 Usage of this software requires abilities with sysadmin, database admin, coin daemons, and sometimes a bit of programming. Running a production pool can literally be more work than a full-time job.
 
+### Features
+
+* ✅ **Solo Mining Support** - Miners can mine solo with `m=solo` password parameter
+* ✅ **ASICBoost Support** - Full support with version rolling for mining optimization
+* ✅ **Fixed Payment System** - Resolved double fee deduction issue (v1.4.1)
+* ✅ **Multiple Payment Modes** - PROP and PPLNT payment systems
+* ✅ **Dual Mining** - Support pool and solo mining simultaneously
+
+### Recent Updates (v1.4.1)
+
+* **FIXED**: Double fee deduction bug in solo mining payment processing
+* **IMPROVED**: Solo mining fees now correctly compensate for coinbase rewardRecipients
+* **ENHANCED**: Consistent fee handling for both 'generate' and 'immature' blocks
+* **OPTIMIZED**: Payment processor efficiency improvements
 
 ### Community
 
-ZNY-NOMP official Discord Server
-* Join [https://discord.gg/zHUdQy2NzU](https://discord.gg/zHUdQy2NzU)
+If your pool uses SHA256-NOMP let us know and we will list your website here.
 
-If your pool uses ZNY-NOMP let us know and we will list your website here.
+### Some pools using SHA256-NOMP:
 
-### Some pools using ZNY-NOMP or node-stratum-pool module:
-
-* [mofumofu.me - BitZeny Mining Pool](https://zny.mofumofu.me/)
-* [sha256-mining.go.ro - Mining ⚒️ 
-Pool](https://sha256-mining.go.ro:50300)
+* [sha256-mining.go.ro - Mining Pool](https://sha256-mining.go.ro:50300)
 
 Usage
 =====
 
-
 #### Requirements
 * Coin daemon(s) (find the coin's repo and build latest version from source)
-* [Node.js](http://nodejs.org/) v16.11+ ([follow these installation instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager))
+* [Node.js](http://nodejs.org/) v16+ ([follow these installation instructions](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager))
 * [Redis](http://redis.io/) key-value store v2.6+ ([follow these instructions](http://redis.io/topics/quickstart))
 
 ##### Seriously
 Those are legitimate requirements. If you use old versions of Node.js or Redis that may come with your system package manager then you will have problems. Follow the linked instructions to get the last stable versions.
 
-
 [**Redis security warning**](http://redis.io/topics/security): be sure firewall access to redis - an easy way is to
 include `bind 127.0.0.1` in your `redis.conf` file. Also it's a good idea to learn about and understand software that
 you are using - a good place to start with redis is [data persistence](http://redis.io/topics/persistence).
-
 
 #### 0) Setting up coin daemon
 Follow the build/install instructions for your coin daemon. Your coin.conf file should end up looking something like this:
@@ -49,7 +54,7 @@ Follow the build/install instructions for your coin daemon. Your coin.conf file 
 daemon=1
 rpcuser=username
 rpcpassword=password
-rpcport=9252
+rpcport=8332
 ```
 For redundancy, its recommended to have at least two daemon instances running in case one drops out-of-sync or offline,
 all instances will be polled for block/transaction updates and be used for submitting blocks. Creating a backup daemon
@@ -61,10 +66,9 @@ a good pool operator. For starters be sure to read:
    * https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_Calls_list
    * https://en.bitcoin.it/wiki/Difficulty
 
-
 #### 1) Downloading & Installing
 
-Clone the repository and run `npm update` for all the dependencies to be installed:
+Clone the repository and run `npm install` for all the dependencies to be installed:
 
 ```bash
 sudo apt-get install build-essential libsodium-dev libboost-all-dev libgmp3-dev node-gyp libssl-dev -y
@@ -72,8 +76,8 @@ sudo apt install nodejs npm -y
 sudo npm install n -g
 sudo n stable
 sudo apt purge nodejs npm -y
-git clone https://github.com/ROZ-MOFUMOFU-ME/zny-nomp
-cd zny-nomp
+git clone https://github.com/janos-raul/sha256-nomp
+cd sha256-nomp
 npm install
 ```
 
@@ -155,7 +159,7 @@ Explanation for each field:
         "host": "0.0.0.0",
         "port": 80,
         /* Used for displaying stratum connection data on the Getting Started page. */
-        "stratumHost": "cryppit.com",
+        "stratumHost": "yourpool.com",
         "stats": {
             /* Gather stats to broadcast to page viewers and store in redis for historical stats
                every this many seconds. */
@@ -179,16 +183,8 @@ Explanation for each field:
         "port": 6379
     },
 
-
     /* With this switching configuration, you can setup ports that accept miners for work based on
-       a specific algorithm instead of a specific coin. Miners that connect to these ports are
-       automatically switched a coin determined by the server. The default coin is the first
-       configured pool for each algorithm and coin switching can be triggered using the
-       cli.js script in the scripts folder.
-
-       Miners connecting to these switching ports must use their public key in the format of
-       RIPEMD160(SHA256(public-key)). An address for each type of coin is derived from the miner's
-       public key, and payments are sent to that address. */
+       a specific algorithm instead of a specific coin. */
     "switching": {
         "switch1": {
             "enabled": false,
@@ -205,31 +201,6 @@ Explanation for each field:
                     }
                 }
             }
-        },
-        "switch2": {
-            "enabled": false,
-            "algorithm": "scrypt",
-            "ports": {
-                "4444": {
-                    "diff": 10,
-                    "varDiff": {
-                        "minDiff": 16,
-                        "maxDiff": 512,
-                        "targetTime": 15,
-                        "retargetTime": 90,
-                        "variancePercent": 30
-                    }
-                }
-            }
-        },
-        "switch3": {
-            "enabled": false,
-            "algorithm": "x11",
-            "ports": {
-                "5555": {
-                    "diff": 0.001
-                }
-            }
         }
     },
 
@@ -244,38 +215,29 @@ Explanation for each field:
 }
 ````
 
-
 ##### Coin config
 Inside the `coins` directory, ensure a json file exists for your coin. If it does not you will have to create it.
 Here is an example of the required fields:
 ````javascript
 {
-    "name": "BitZeny",
-    "symbol": "ZNY",
-    "algorithm": "yescryptR8",
+    "name": "Bitcoin",
+    "symbol": "BTC",
+    "algorithm": "sha256",
+    "asicboost": true,  // Enable ASICBoost with version rolling
 
-    // Coinbase value is what is added to a block when it is mined, set this to your pool name so 
-    // explorers can see which pool mined a particular block.
-    "coinbase": "Bitzeny",
-    /* Magic value only required for setting up p2p block notifications. It is found in the daemon
-       source code as the pchMessageStart variable.
-       For example, BitZeny mainnet magic: https://github.com/BitzenyCoreDevelopers/bitzeny/blob/z2.0.x/src/chainparams.cpp#L114
-       And for BitZeny testnet magic: https://github.com/BitzenyCoreDevelopers/bitzeny/blob/z2.0.x/src/chainparams.cpp#L206 */
-    "peerMagic": "daa5bef9", //optional
-    "peerMagicTestnet": "59454e59" //optional
+    // Coinbase value is what is added to a block when it is mined
+    "coinbase": "SHA256NOMP",
+    
+    /* Magic value only required for setting up p2p block notifications. */
+    "peerMagic": "f9beb4d9", //optional
+    "peerMagicTestnet": "0b110907" //optional
 
-    //"txMessages": false, //options - defaults to false
-
-    //"mposDiffMultiplier": 256, //options - only for x11 coins in mpos mode
+    //"txMessages": false, //optional - defaults to false
 }
 ````
 
-For additional documentation how to configure coins and their different algorithms
-see [these instructions](//github.com/AoD-Technologies/cryptocurrency-stratum-pool#module-usage).
-
-
 ##### Pool config
-Take a look at the example json file inside the `pool_configs` directory. Rename it to `bitzeny.json` and change the
+Take a look at the example json file inside the `pool_configs` directory. Rename it to `bitcoin.json` and change the
 example fields to fit your setup.
 
 ```
@@ -286,114 +248,87 @@ Whenever a miner submits a share, the pool counts the difficulty and keeps addin
 ie: Miner 1 mines at 0.1 difficulty and finds 10 shares, the pool sees it as 1 share. Miner 2 mines at 0.5 difficulty and finds 5 shares, the pool sees it as 2.5 shares.
 ```
 
-```bitzeny.json
+```bitcoin.json
 {
-    "enabled": true, // Enables the mining pool; set to false to disable it.
-
-    "coin": "bitzeny.json", // Specifies the coin configuration file.
-
-    "blockIdentifier": "", // A unique string to be embedded in blocks mined by this pool. Used for identification purposes.
-    "_comment_blockIdentifier1": "a string embedded in the block to be mined. Used to identify the pool in Insight etc.",
-    "_comment_blockIdentifire2": "If this value equals null string, website.stratumHost in 'config.json' is used.",
-
-    "address": "", // Server wallet address for receiving and sending mining rewards.
-    "BTCover17": false, // Indicates whether the pool is using Bitcoin Core version 0.17 or higher.
-    "_comment_BTCover17": "If BTC 0.17 or higher, payment does not work please enable it",
-
-    "zAddress": "", // (for KOTO) Server wallet private address used to send tAddress.
-    "_comment_zAddress": "a private address used to send coins to tAddress.",
-
-    "tAddress": "", // (for KOTO) Server wallet transparent address used for payouts to miners.
-    "_comment_tAddress": "transparent address used to send payments, make this a different address, otherwise payments will not send",
-
-    "walletInterval": 2.5, // (for KOTO) The interval in minutes between wallet operations or updates.
+    "enabled": true,
+    "coin": "bitcoin.json",
+    
+    "asicboost": true,  // Enable ASICBoost support with version rolling
+    
+    "address": "YOUR_POOL_WALLET_ADDRESS",
     
     "rewardRecipients": {
-        "": 1.0 // Your wallet addresses and their corresponding reward percentages.
+        "POOL_FEE_ADDRESS": 1.0  // 1% pool fee at coinbase level
     },
 
-    "urlInsight": "", // (option) Using another explorer
-    "_comment_urlInsight": "for using non-default insight: e.g. https://koto-insight-testnet.poolof.work for testnet",
-
     "paymentProcessing": {
-        "minConf": 10, // Minimum number of confirmations for a block before processing payment.
-        "enabled": true, // Enables payment processing.
-        "paymentMode": "prop", // Payment mode: proportional (prop) or Pay Per Last N Time (pplnt).
-        "_comment_paymentMode": "prop, pplnt",
-        "paymentInterval": 120, // Payment interval in seconds.
-        "minimumPayment": 0.1, // Minimum amount of coins to be paid out.
-        "maxBlocksPerPayment": 3, // Maximum number of blocks to include in a single payment.
+        "minConf": 101,
+        "enabled": true,
+        "paymentMode": "prop", // or "pplnt"
+        "paymentInterval": 120,
+        "minimumPayment": 0.01,
+        "soloMining": true,  // Enable solo mining
+        "soloFee": 2.0,      // Total fee for solo miners (2%)
         "daemon": {
-            "host": "127.0.0.1", // Coin daemon RPC server host.
-            "port": 9252, // Coin daemon RPC server port.
-            "user": "username", // Username for daemon RPC server.
-            "password": "password" // Password for daemon RPC server.
+            "host": "127.0.0.1",
+            "port": 8332,
+            "user": "username",
+            "password": "password"
         }
     },
 
-    "tlsOptions": {
-        "enabled": false, // Enables TLS/SSL; set to true to secure connections.
-        "serverKey": "", // Path to the server key file.
-        "serverCert": "", // Path to the server certificate file.
-        "ca": "" // Path to the certificate authority file.
-    },
-
     "ports": {
-        "3031": {
-            "diff": 0.5, // Initial difficulty for miners connecting on this port.
-            "tls": false, // Specifies whether TLS is enabled for this port.
+        "3032": {
+            "diff": 1024,
             "varDiff": {
-                "minDiff": 0.00, // Minimum difficulty.
-                "maxDiff": 16, // Maximum difficulty.
-                "targetTime": 15, // Target time per share (in seconds).
-                "retargetTime": 60, // Time to retarget difficulty.
-                "variancePercent": 30 // Allowed variance in percent from target time.
+                "minDiff": 512,
+                "maxDiff": 131072,
+                "targetTime": 15,
+                "retargetTime": 90,
+                "variancePercent": 30
             }
         },
-         "3032": {  // (Option) Enable multiple difficulty ports
-            "diff": 5,
-            "tls": false,
+        "3033": {  // High difficulty port for large miners
+            "diff": 16384,
             "varDiff": {
-                "minDiff": 0.01,
-                "maxDiff": 100,
+                "minDiff": 16384,
+                "maxDiff": 2097152,
                 "targetTime": 15,
-                "retargetTime": 60,
+                "retargetTime": 90,
                 "variancePercent": 30
             }
         }
     },
 
-    "poolId": "main", // Identifier for the mining pool, useful for multi-pool setups.
-    "_comment_poolId": "use it for region identification: eu, us, asia or keep default if you have one stratum instance for one coin",
-
     "daemons": [
         {
-            "host": "127.0.0.1", // Host where the coin daemon is running.
-            "port": 9252, // Port on which the coin daemon is listening.
-            "user": "username", // Username for accessing the coin daemon.
-            "password": "password" // Password for accessing the coin daemon.
+            "host": "127.0.0.1",
+            "port": 8332,
+            "user": "username",
+            "password": "password"
         }
     ],
 
     "p2p": {
-        "enabled": true, // Enables P2P mode.
-        "host": "127.0.0.1", // Host for the P2P server.
-        "port": 9253, // Port for the P2P server.
-        "disableTransactions": true // Disables transaction messages in P2P mode.
-    },
-
-    "mposMode": {
-        "enabled": false, // Enables MPOS compatibility mode.
-        "host": "127.0.0.1", // Database server host for MPOS mode.
-        "port": 3306, // Database server port for MPOS mode.
-        "user": "", // Database username.
-        "password": "", // Database password.
-        "database": "", // Database name.
-        "checkPassword": true, // Enables password checking for miners.
-        "autoCreateWorker": false // Automatically creates a worker if it doesn't exist.
+        "enabled": false,
+        "host": "127.0.0.1",
+        "port": 8333,
+        "disableTransactions": true
     }
 }
 ```
+
+#### Solo Mining Configuration
+
+Miners connect for solo mining using the password parameter:
+```
+Username: YOUR_BITCOIN_ADDRESS
+Password: m=solo
+```
+
+Example connections:
+* **CGMiner**: `cgminer -o stratum+tcp://yourpool.com:3032 -u YOUR_ADDRESS -p m=solo`
+* **With custom difficulty**: `cgminer -o stratum+tcp://yourpool.com:3032 -u YOUR_ADDRESS -p m=solo,d=65536`
 
 ##### [Optional, recommended] Setting up blocknotify
 1. In `config.json` set the port and password for `blockNotifyListener`
@@ -401,14 +336,13 @@ ie: Miner 1 mines at 0.1 difficulty and finds 10 shares, the pool sees it as 1 s
 ```
 node [path to cli.js] [coin name in config] [block hash symbol]
 ```
-Example: inside `bitzeny.conf` add the line
+Example: inside `bitcoin.conf` add the line
 ```
-blocknotify=node /home/user/zny-nomp/scripts/cli.js blocknotify bitzeny %s
+blocknotify=node /home/user/sha256-nomp/scripts/cli.js blocknotify bitcoin %s
 ```
 
 Alternatively, you can use a more efficient block notify script written in pure C. Build and usage instructions
 are commented in [scripts/blocknotify.c](scripts/blocknotify.c).
-
 
 #### 3) Start the portal
 
@@ -422,42 +356,33 @@ in case the master process crashes.
 * Use something like [redis-commander](https://github.com/joeferner/redis-commander) to have a nice GUI
 for exploring your redis database.
 * Use something like [logrotator](http://www.thegeekstuff.com/2010/07/logrotate-examples/) to rotate log
-output from ZNY-NOMP.
-* Use [New Relic](http://newrelic.com/) to monitor your ZNY-NOMP instance and server performance.
+output from SHA256-NOMP.
+* Use [New Relic](http://newrelic.com/) to monitor your SHA256-NOMP instance and server performance.
 
-
-#### Upgrading ZNY-NOMP
-When updating ZNY-NOMP to the latest code its important to not only `git pull` the latest from this repo, but to also update
+#### Upgrading SHA256-NOMP
+When updating SHA256-NOMP to the latest code its important to not only `git pull` the latest from this repo, but to also update
 the `node-stratum-pool` and `node-multi-hashing` modules, and any config files that may have been changed.
-* Inside your ZNY-NOMP directory (where the init.js script is) do `git pull` to get the latest ZNY-NOMP code.
-* Remove the dependenices by deleting the `node_modules` directory with `rm -r node_modules`.
+* Inside your SHA256-NOMP directory (where the init.js script is) do `git pull` to get the latest SHA256-NOMP code.
+* Remove the dependencies by deleting the `node_modules` directory with `rm -r node_modules`.
 * Run `npm update` to force updating/reinstalling of the dependencies.
 * Compare your `config.json` and `pool_configs/coin.json` configurations to the latest example ones in this repo or the ones in the setup instructions where each config field is explained. <b>You may need to modify or add any new changes.</b>
 
 Donations
 -------
- Donations for development are greatly appreciated!
-  * ZNY: ZmnBu9jPKvVFL22PcwMHSEuVpTxFeCdvNv
-  * NUKO: 0xa79bde46faab3c40632604728e9f2165b052581c
-  * KOTO :k1FTuimwDJ8oo3x23cEBLxovxw5Cqq2U1HK
-  * SUSU: SeXbMBaax7NgnTEFEMxin5ycXy9r9CDBot
-  * MONA: MLEqE3vi11j4ZguMjkvMn5rUtze6kXbAzQ
-  * BELL: BCVicYRSqKKt1ynJKPrXHA46hUWLrbjR49
-  * SUGAR: sugar1qtwqle9lrr753kxuzqqsh3hv28jl07e3mntx78n
-  * VIPS: VFixsia2EstV4uEEigUXUrknDGsFeWyNhE
-  * KUMA: KHjjZ5misqq45zwhj86WKqV8bzqcYExzyM
-  * BTC: 3FpbJ5cotwPZQn9fcdZrPv4h72XquzEvez
-  * ETH: 0xc664a0416c23b1b13a18e86cb5fdd1007be375ae
-  * LTC: Lh96WZ7Rw9Wf4GDX2KXpzieneZFV5Xe5ou
-  * BCH: pzdsppue8uwc20x35psaqq8sgchkenr49c0qxzazxu
-  * ETC: 0xc664a0416c23b1b13a18e86cb5fdd1007be375ae
-  * MONA: MLEqE3vi11j4ZguMjkvMn5rUtze6kXbAzQ
+Donations for development are greatly appreciated!
+
+* BTC:  `bc1q0aa3k39ww33z24p3wpk72jjn32h2n5rfr85pnx`
+* BTCS: `bs1q8dnz4q52czdusl8hy04fw3jryj2kc3earck3y2`
+* BCH:  `qzhpajyfz7yvl8963rre5zqdp72pqy47ysttst0wmr`
 
 Credits
 -------
-### ZNY-NOMP
+### SHA256-NOMP
+* [Janos-Raul](https://github.com/janos-raul) - maintainer, fixed payment processing
+
+### ZNY-NOMP (Original Fork Base)
 * [ROZ](https://github.com/ROZ-MOFUMOFU-ME)
-* [zinntikumugai](https://github.com/zinntikumugai) - great supporter
+* [zinntikumugai](https://github.com/zinntikumugai)
 
 ### cryptocurrency-stratum-pool
 * [Invader444](//github.com/Invader444)

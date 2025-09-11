@@ -4,9 +4,10 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
-    <meta name="keywords" content="bitzeny, zny, mining, pool, cryptocurrency">
-    <meta name="description" content="BitZeny node open mining portal">
-    <link rel="shortcut icon" href="/static/favicon.ico">
+    <meta name="keywords" content="BitcoinSilver, Mytherra, BTCS, MYT, mining, mining-pool, cryptocurrency">
+    <meta name="description" content="sha256 mining portal">
+    <meta http-equiv="refresh" content="115">
+    <link rel="shortcut icon" href="/static/flavicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap">
@@ -21,7 +22,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <script src="/static/main.js"></script>
     <link rel="stylesheet" href="/static/style.css">
-    <title>zny-nomp</title>
+    <title>sha256-mining.go.ro</title>
 </head>
 
 <body>
@@ -30,8 +31,7 @@
         <div class="custom-wrapper pure-g" id="menu">
             <div class="pure-u-1 pure-u-md-1-8">
                 <div class="home-menu pure-menu">
-                    <a href="/" class="pure-menu-heading">zny-nomp</a>
-                    <a href="#" class="custom-toggle" id="toggle"><s class="bar"></s><s class="bar"></s></a>
+                   <a href="/" class="pure-menu-heading">sha256-mining.go.ro</a>
                 </div>
             </div>
             <div class="pure-u-1 pure-u-md-1-8">
@@ -52,7 +52,7 @@
                         <li class="pure-menu-item">
                             <a class="pure-menu-link" href="/workers">
                                 <i class="fas fa-cogs fa-fw"></i>
-                                <span id="workers" data-lang-key="workers_stats">Workers Stats</span>
+                                <span id="workers" data-lang-key="workers_stats">Miner Stats</span>
                             </a>
                         </li>
                         <li class="pure-menu-item">
@@ -81,12 +81,14 @@
                                 <option value="zh">🇨🇳</option>
                                 <option value="zh-TW">🇹🇼</option>
                                 <option value="zh-HK">🇭🇰</option>
-                                <option value="ko">🇰🇷</option>
+								<option value="hu">🇭🇺</option>
+								<option value="ko">🇰🇷</option>
                                 <option value="fr">🇫🇷</option>
                                 <option value="es">🇪🇸</option>
                                 <option value="de">🇩🇪</option>
                                 <option value="pt">🇵🇹</option>
                                 <option value="it">🇮🇹</option>
+								<option value="ro">🇷🇴</option>
                                 <option value="ru">🇷🇺</option>
                                 <option value="hi">🇮🇳</option>
                                 <option value="ar">🇸🇦</option>
@@ -107,14 +109,14 @@
     </main>
     <footer>
         <div id="communityFooter">
-            This site is powered by <a target="_blank" href="https://github.com/ROZ-MOFUMOFU-ME/zny-nomp/">zny-nomp</a>
+            This site is powered by <a target="_blank" href="https://github.com/janos-raul/sha256-nomp/">sha256-nomp</a>
             project forked by <a target="_blank" href="https://github.com/janos-raul/">janos-raul</a>,
-            created by Joshua Yabut and the Zclassic Community and yoshuki43 originally and is
+            from <a target="_blank" href="https://github.com/ROZ-MOFUMOFU-ME/zny-nomp/">zny-nomp</a>
             licensed under the <a href="https://en.wikipedia.org/wiki/MIT_License">MIT License</a>. <br>
             <i class="fas fa-heart fa-fw"></i>&nbsp;Donating&nbsp;
-            <i class="fab fa-bitcoin fa-fw"></i>&nbsp;BTC:&nbsp;3FpbJ5cotwPZQn9fcdZrPv4h72XquzEvez&nbsp;
-            <i class="fab fa-ethereum fa-fw"></i>&nbsp;ETH:&nbsp;0xc664a0416c23b1b13a18e86cb5fdd1007be375ae&nbsp;
-            <i class="fas fa-litecoin-sign fa-fw"></i>&nbsp;LTC:&nbsp;Lh96WZ7Rw9Wf4GDX2KXpzieneZFV5Xe5ou <br>
+            <i class="fab fa-bitcoin fa-fw"></i>&nbsp;BTC:&nbsp;bc1q0aa3k39ww33z24p3wpk72jjn32h2n5rfr85pnx&nbsp;
+            <i class="fab fa-bitcoin fa-fw"></i>&nbsp;BTCS:&nbsp;bs1q8dnz4q52czdusl8hy04fw3jryj2kc3earck3y2&nbsp;
+            <i class="fab fa-bitcoin fa-fw"></i>&nbsp;BCH:&nbsp;qzhpajyfz7yvl8963rre5zqdp72pqy47ysttst0wmr <br>
             <i class="fas fa-comments fa-fw"></i>&nbsp;&nbsp;Contact&nbsp;:&nbsp;&nbsp;
             <a target="_blank" href="https://x.com/janos_raul"><i class="fab fa-x-twitter fa-fw"></i></a>
             &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -122,7 +124,7 @@
             &nbsp;&nbsp;|&nbsp;&nbsp;
             <a target="_blank" href="https://discord.gg/TerHJRs38B"><i class="fab fa-discord fa-fw"></i></a>
             &nbsp;&nbsp;| &nbsp;&nbsp;
-            <iframe src="https://ghbtns.com/github-btn.html?user=ROZ-MOFUMOFU-ME&repo=zny-nomp&type=star&count=true"
+            <iframe src="https://ghbtns.com/github-btn.html?user=janos-raul&repo=sha256-nomp&type=star&count=true"
                 frameborder="0" scrolling="0" width="150" height="20" title="zny-nomp"></iframe>
         </div>
     </footer>
@@ -190,25 +192,28 @@
                 }
             }
 
-            async function setLanguage(lang) {
-                const translations = await loadTranslations();
-                document.querySelectorAll('[data-lang-key]').forEach(element => {
-                    const key = element.getAttribute('data-lang-key');
-                    element.textContent = translations[lang][key] || translations['en'][key];
-                });
-                document.documentElement.lang = lang;
-                document.getElementById('language-select').value = lang;
-            }
-
-            function getServerLanguage() {
-                return document.documentElement.lang || 'en';
-            }
-
-            setLanguage(getServerLanguage());
-            document.getElementById('language-select').addEventListener('change', function () {
-                setLanguage(this.value);
-            });
+    async function setLanguage(lang) {
+        const translations = await loadTranslations();
+        document.querySelectorAll('[data-lang-key]').forEach(element => {
+            const key = element.getAttribute('data-lang-key');
+            element.textContent = translations[lang][key] || translations['en'][key];
         });
+        document.documentElement.lang = lang;
+        document.getElementById('language-select').value = lang;
+        localStorage.setItem('preferredLanguage', lang); // Save language
+    }
+
+    function getStoredLanguage() {
+        return localStorage.getItem('preferredLanguage') || 'en';
+    }
+
+    setLanguage(getStoredLanguage());
+
+    document.getElementById('language-select').addEventListener('change', function () {
+        setLanguage(this.value);
+    });
+
+  });
     </script>
 </body>
 

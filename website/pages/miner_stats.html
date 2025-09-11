@@ -80,6 +80,7 @@
     .boxStatsList>div>div {
         padding: 3px;
     }
+
 </style>
 
 <div id="topCharts">
@@ -111,8 +112,29 @@
 <div id="boxesWorkers"> </div>
 
 <script>
-    var _miner = "{{=String(it.stats.address).split('.')[0]}}";
+    var _miner = "{{=String(it.stats.address || '').split('.')[0]}}";
     var _workerCount = 0;
-    window.statsSource = new EventSource("/api/live_stats");
-    document.querySelector('main').appendChild(document.createElement('script')).src = '/static/miner_stats.js';
+    
+    // Wait for jQuery to be ready
+    $(document).ready(function() {
+        console.log('Initializing miner stats for:', _miner);
+        
+        // Create EventSource connection
+        window.statsSource = new EventSource("/api/live_stats");
+        
+        window.statsSource.onopen = function(e) {
+            console.log('Connected to live stats');
+        };
+        
+        window.statsSource.onerror = function(e) {
+            console.error('EventSource error:', e);
+        };
+        
+        // Load miner_stats.js after EventSource is created
+        setTimeout(function() {
+            var script = document.createElement('script');
+            script.src = '/static/miner_stats.js?v=' + Date.now(); // Add cache buster
+            document.querySelector('main').appendChild(script);
+        }, 100);
+    });
 </script>

@@ -398,6 +398,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 # zny-nomp
-config.json
-pool_configs/*.json
-coins/*.json
+#config.json
+#pool_configs/*.json
+#coins/*.json

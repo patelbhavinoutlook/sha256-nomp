@@ -1,38 +1,106 @@
 <style>
-    #boxWelcome {
-        background-color: #0eafc7;
-        color: white;
+
+    #holder{
+        display: flex;
+        flex-direction: row;
+    }
+
+    .glow{
+        box-shadow: inset 0 0 12px 4px #ff6c00;
+    }
+
+    .hidden{
+        display: none !important;
+    }
+
+    #menu{
+        background-color: #3d3d3d;
+        min-width: 170px;
+    }
+
+    #menu > .menuHeader{
+        color: #e3f7ff;
+        border-bottom: 1px solid #7f878b;
+        font-size: 1.2em;
+        padding: 16px 16px 4px 15px;
+    }
+
+    .menuList{
+        transition-duration: 200ms;
+    }
+
+    .menuList > a:first-child{
+        margin-top: 10px;
+    }
+
+    .menuList > a{
+        display: block;
+        color: #e3f7ff;
+        text-decoration: none;
+        padding: 7px;
+        padding-left: 25px;
+        text-transform: capitalize;
+    }
+
+    .menuList > a:hover{
+        color: #f69b3a;
+    }
+
+    #main{
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
         margin: 18px;
     }
+	
+	#boxWelcome {
+	  background-color: #1f2434;
+	  color: white;
+	  margin: 18px;
+	  padding: 24px;
+	  border-radius: 10px;
+	  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
 
-    #logoImg {
-        width: 60%;
-        height: auto;
-        margin: 55px 0 0 55px;
-    }
+	#logoImg {
+	  width: 48%;
+	  height: auto;
+	  margin: 40px auto 0 auto;
+	  display: block;
+	}
 
-    #welcomeText {
-        font-size: 2.7em;
-        margin: 50px 18px 10px 18px;
-    }
+	#welcomeText {
+	  font-size: 2.5em;
+	  margin: 40px 18px 20px 18px;
+	  font-weight: 600;
+	  letter-spacing: 0.5px;
+	}
 
-    #welcomeItems {
-        list-style-type: none;
-        font-size: 1.3em;
-        padding: 0 !important;
-        margin: 0 0 0 18px !important;
-    }
+	#welcomeItems {
+	  list-style: none;
+	  font-size: 1.2em;
+	  padding-left: 0;
+	  margin-left: 18px;
+	}
 
-    #welcomeItems>li {
-        margin: 30px !important;
+	#welcomeItems > li {
+	  margin: 20px 0;
+	  line-height: 1.6;
+	}
+	
+	#boxgecko {
+        margin: 0 9px;
+		border-radius: 10px;
     }
 
     #boxesLower {
         margin: 0 9px;
+			   border-radius: 10px;
     }
 
     #boxesLower>div {
         display: flex;
+				border-radius: 10px;
     }
 
     #boxesLower>div>div {
@@ -50,15 +118,18 @@
 
 
     #boxStatsLeft {
-        background-color: #b064e1;
+        background-color: #1f2434;
+			   border-radius: 10px;
     }
 
     #boxStatsRight {
-        background-color: #10bb9c;
+        background-color: #1f2434;
+			   border-radius: 10px;
     }
 
     .boxStats {
         color: white;
+			   border-radius: 10px;
     }
 
     .boxStatsList {
@@ -84,71 +155,408 @@
     .boxStatsList>div>div {
         padding: 3px;
     }
+	
+    #orHolder{
+        height: 37px;
+        text-align: center;
+    }
+    #orLine{
+        border-bottom: 1px solid #c2cacf;
+        height: 19px;
+        margin-bottom: -13px;
+    }
+
+  .marketRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid #ccc;
+    font-family: Arial, sans-serif;
+    color: #eee;
+  }
+  
+    .marketRowLive {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .marketCoin {
+    font-weight: bold;
+	display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid #ccc;
+    font-family: Arial, sans-serif;
+    color: #eee;
+  }
+  
+  .market-name {
+    font-weight: bold;
+  }
+
+  .market-link a {
+	font-weight: bold;
+    color: #00bfff;
+    text-decoration: none;
+  }
+
+  .market-link a:hover {
+    text-decoration: underline;
+  }
+  
+   .swap-button {
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 114, 255, 0.4);
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .swap-button::after {
+      content: "🔥";
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.5rem;
+      animation: pulse 1.5s infinite;
+    }
+
+    .swap-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 24px rgba(0, 114, 255, 0.6);
+    }
+
+    @keyframes pulse {
+      0% { transform: translateY(-50%) scale(1); }
+      50% { transform: translateY(-50%) scale(1.2); }
+      100% { transform: translateY(-50%) scale(1); }
+    }
+  	    /* Mobile responsive tables */
+    @media screen and (max-width: 768px) {
+        /* Make tables scrollable on mobile */
+        .poolMinerTable {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        table {
+            min-width: 500px; /* Minimum width to maintain readability */
+        }
+        
+        /* Reduce padding on mobile */
+        #topPool {
+            padding: 10px;
+        }
+        
+        /* Stack miner lookup on mobile */
+        .poolLabel span {
+            float: none !important;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        /* Smaller font sizes on mobile */
+        .poolLabel small {
+            font-size: 0.85em;
+            display: block;
+            line-height: 1.8;
+        }
+        
+        /* Make input and button full width on mobile */
+        .input-lg, .btn-lg {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        /* Hide less important columns on mobile */
+        @media screen and (max-width: 480px) {
+            table th:nth-child(3),
+            table td:nth-child(3) {
+                display: none; /* Hide efficiency column on very small screens */
+            }
+        }
+    }
+    
+    /* Responsive text */
+    @media screen and (max-width: 480px) {
+        .poolLabel {
+            font-size: 1em;
+        }
+        
+        /* Break long addresses */
+        table td:first-child {
+            word-break: break-all;
+            max-width: 150px;
+        }
+    }
 </style>
 {{ function capitalizeFirstLetter(t){return t.charAt(0).toUpperCase()+t.slice(1)} }}
 {{ function readableDate(a){ return new Date(parseInt(a)).toString(); } }}
+<div id="boxgecko">
+<script src="https://widgets.coingecko.com/gecko-coin-price-marquee-widget.js"></script>
+<gecko-coin-price-marquee-widget locale="en" outlined="true" transparent-background="true" coin-ids="bitcoin,ethereum,bitcoin-cash,binancecoin,litecoin,tether,usd-coin,digibyte,dogecoin,floki,bonk,shiba-inu,pepe" initial-currency="usd"></gecko-coin-price-marquee-widget>
+</div>
 <div class="pure-g" id="boxWelcome">
-    <div class="pure-u-1-3">
-        <img id="logoImg" src="/static/logo.svg" alt="logo">
-    </div>
-    <div class="pure-u-2-3">
-        <div id="welcomeText">Welcome to the future of mining</div>
-        <ul id="welcomeItems">
-            <li>Low fees</li>
-            <li>High performance Node.js backend</li>
-            <li>User friendly mining client</li>
-            <li>Multi-coin / multi-pool</li>
-        </ul>
-    </div>
+  <!-- Logo Section -->
+  <div class="pure-u-1-3">
+    <img id="logoImg" src="/static/logo.gif" alt="SHA256 Mining Logo">
+  </div>
+
+  <!-- Welcome Text and Info -->
+  <div class="pure-u-2-3">
+    <div id="welcomeText">Welcome to <strong>sha256-mining.go.ro</strong></div>
+    <ul id="welcomeItems">
+     <!-- <li><strong>Pool fees:</strong> 1%</li> -->
+      <li><strong>Payment interval:</strong> 1 hour</li>
+      <!-- <li><strong>Minimum payout:</strong> 49</li> -->
+      <li><strong>Payment method:</strong>&nbsp;&nbsp;PROP - SOLO</li>
+    </ul>
+  </div>
 </div>
 <div class="pure-g" id="boxesLower">
-    <div class="pure-u-1-2">
-        <div class="boxStats" id="boxStatsLeft">
-            <div class="boxLowerHeader">Global Stats</div>
-            <div class="boxStatsList">
-                {{ for(var algo in it.stats.algos) { }}
-                <div>
-                    <div><i class="fas fa-flask fa-fw"></i>&nbsp;{{=capitalizeFirstLetter(algo)}}</div>
-                    <div><i class="fas fa-users fa-fw"></i>&nbsp;<span
-                            id="statsMiners{{=algo}}">{{=it.stats.algos[algo].workers}}</span> Miners</div>
-                    <div><i class="fas fa-gauge-simple-high fa-fw"></i>&nbsp;<span
-                            id="statsHashrate{{=algo}}">{{=it.stats.algos[algo].hashrateString}}</span></div>
-                </div>
-                {{ } }}
-            </div>
+	<div class="pure-u-1-2">
+		<div class="boxStats" id="boxStatsLeft">
+			<div class="boxLowerHeader">Pool Stats</div>
+			<div class="boxStatsList">
+				{{ for(var algo in it.stats.algos) { }}
+				<div>
+					<div id="orHolder">
+						<div id="orLine"></div>
+					</div>
+					<div><i class="fas fa-flask fa-fw"></i>&nbsp;{{=capitalizeFirstLetter(algo)}}</div>
+					<div><i class="fas fa-users fa-fw"></i>&nbsp;Miners:
+						<span id="statsGlobalMiners">{{=it.stats.global.miners}}</span>
+						<span style="font-size: 0.9em; color: #888;">
+							({{=it.stats.global.poolMiners}} pool / {{=it.stats.global.soloMiners}} solo)
+						</span>
+					</div>
+					<div><i class="fas fa-gears fa-fw"></i>&nbsp;Workers:
+						<span id="statsGlobalWorkers">{{=it.stats.global.workers}}</span>
+					</div>
+					<div><i class="fas fa-gauge-simple-high fa-fw"></i>&nbsp;Hashrate:
+						<span id="statsGlobalHashrate">{{=it.stats.global.hashrateString}}</span>
+					</div>
+					<div id="orHolder">
+						<div id="orLine"></div>
+					</div>
+				</div>
+				{{ } }}
+			</div>
+		</div>
+	</div>
+<div class="pure-u-1-2">
+    <div class="boxStats" id="boxStatsRight">
+        <div class="boxLowerHeader">Pools / Coins</div>
+        <div class="boxStatsList">
+            {{ for(var pool in it.stats.pools) { }}
+            <div>
+		<div id="orHolder">
+            <div id="orLine"></div>
         </div>
-    </div>
-    <div class="pure-u-1-2">
-        <div class="boxStats" id="boxStatsRight">
-            <div class="boxLowerHeader">Pools / Coins</div>
-            <div class="boxStatsList">
-                {{ for(var pool in it.stats.pools) { }}
-                <div>
-                    <div><i class="fas fa-coins fa-fw"></i>&nbsp;{{=capitalizeFirstLetter(pool)}}</div>
-                    <div><i class="fas fa-users fa-fw"></i>&nbsp;<span
-                            id="statsMiners{{=pool}}">{{=it.stats.pools[pool].workerCount}}</span> Miners</div>
-                    <div><i class="fas fa-gauge-simple-high fa-fw"></i>&nbsp;<span
-                            id="statsHashrate{{=pool}}">{{=it.stats.pools[pool].hashrateString}}</span></div>
+                <div><i class="fas fa-coins fa-fw"></i>&nbsp;{{=capitalizeFirstLetter(pool)}}</div>
+                <div><i class="fas fa-users fa-fw"></i>&nbsp;Miners: 
+                    <span id="statsMiners{{=pool}}">{{=it.stats.pools[pool].minerCount}}</span>
+                    {{ if(it.stats.pools[pool].soloMining) { }}
+                    <span style="font-size: 0.85em; color: #888;">
+                        ({{=it.stats.pools[pool].poolMinerCount}} pool / {{=it.stats.pools[pool].soloMinerCount}} solo)
+                    </span>
+                    {{ } }}
                 </div>
-                {{ } }}
-            </div>
+                <div><i class="fas fa-gears fa-fw"></i>&nbsp;Workers: 
+                    <span id="statsWorkers{{=pool}}">{{=it.stats.pools[pool].workerCount}}</span>
+                    {{ if(it.stats.pools[pool].soloMining) { }}
+                    <span style="font-size: 0.85em; color: #888;">
+                        ({{=it.stats.pools[pool].poolWorkerCount}} pool / {{=it.stats.pools[pool].soloWorkerCount}} solo)
+                    </span>
+                    {{ } }}
+                </div>
+                <div><i class="fas fa-gauge-simple-high fa-fw"></i>&nbsp;Hashrate: 
+                    <span id="statsHashrate{{=pool}}">{{=it.stats.pools[pool].hashrateString}}</span>
+                </div>
+                <div><i class="fas fa-donate fa-lg"></i>&nbsp;Pool Fee: <span id="poolFee_{{=pool}}">{{=it.stats.pools[pool].poolFee}}%</span></div>
+				<div><i class="fas fa-donate fa-lg"></i>&nbsp;Solo Fee: <span id="poolFee_{{=pool}}">{{=it.stats.pools[pool].soloFee}}%</span></div>
+                <div><i class='fas fa-money-bill-wave fa-lg'></i>&nbsp;Min Pay: <span id="minPay_{{=pool}}">{{=it.stats.pools[pool].minimumPayment}}</span></div>
+        <div id="orHolder">
+            <div id="orLine"></div>
+        </div>
+			</div>
+            {{ } }}
+			<br>
         </div>
     </div>
 </div>
-<script>
-    $(function () {
-        statsSource.addEventListener('message', function (e) {
-            if (document.hidden) return;
+<div class="pure-u-1-2">
+ <div class="boxStats" id="boxStatsLeft">
+		<div class="boxLowerHeader">
+			<div class="market-link">
+				<a href="https://bitcoin-silver.github.io/" target="_blank">
+				{{=capitalizeFirstLetter(it.stats.pools['bitcoinsilver'].name)}}</a> Network Stats
+			</div>
+		</div>
+    <div class="boxStatsList">
+      <div>
+	  	<div id="orHolder">
+            <div id="orLine"></div>
+        </div>
+        <div><i class="fas fa-bars fa-fw"></i> <small>Block Height:</small> <span id="statsNetworkBlocks_bitcoinsilver">{{=it.stats.pools['bitcoinsilver'].poolStats.networkBlocks}}</span></div>
+        <div><i class="fas fa-gauge-simple-high fa-fw"></i> <small>Network H/s:</small> <span id="statsnetworkHash_bitcoinsilver">{{=it.stats.pools['bitcoinsilver'].poolStats.networkHashString}}</span></div>
+        <div><i class="fas fa-unlock fa-fw"></i> <small>Difficulty:</small> <span id="statsNetworkDiff_bitcoinsilver">{{= it.getReadableDifficultyString(it.stats.pools['bitcoinsilver'].poolStats.networkDiff) }}</span></div>
+        <div><i class="fas fa-signal fa-fw"></i> <small>Node Connections:</small> <span id="statsNetworkConnections_bitcoinsilver">{{=it.stats.pools['bitcoinsilver'].poolStats.networkConnections}}</span></div>
+        <div><i class="fas fa-code-fork fa-fw"></i> <small>Daemon:</small> <span id="statsNetworkVersion_bitcoinsilver">{{=it.stats.pools['bitcoinsilver'].poolStats.networkVersion}}</span></div>
+        <div><i class="fas fa-flask fa-fw"></i> <small>Algorithm:</small> <span>{{=capitalizeFirstLetter(it.stats.pools['bitcoinsilver'].algorithm)}}</span></div>
+		<div id="orHolder">
+            <div id="orLine"></div>
+        </div>
+	  </div>
+    </div>
+			<div class="marketCoin">
+			  {{=capitalizeFirstLetter(it.stats.pools['bitcoinsilver'].name)}} Markets
+			</div>
 
-            var stats = JSON.parse(e.data);
-            for (algo in stats.algos) {
-                $('#statsMiners' + algo).text(stats.algos[algo].workers);
-                $('#statsHashrate' + algo).text(stats.algos[algo].hashrateString);
-            }
-            for (var pool in stats.pools) {
-                $('#statsMiners' + pool).text(stats.pools[pool].workerCount);
-                $('#statsHashrate' + pool).text(stats.pools[pool].hashrateString);
-            }
-        });
+			<div class="marketRow">
+			  <div class="market-name">EXBITRON</div>
+			  <div class="market-link">
+				<a href="https://app.exbitron.com/exchange/?market=BTCS-USDT" target="_blank">BTCS / USDT</a>
+			  </div>
+			</div>
+
+			<div class="marketRow">
+			  <div class="market-name">BITSTORAGE</div>
+			  <div class="market-link">
+				<a href="https://bitstorage.finance/spot/trading/BTCSUSDT?interface=classic" target="_blank">BTCS / USDT</a>
+			  </div>
+			</div>
+
+			<div class="marketRow">
+			  <div class="market-name">NestEX</div>
+			  <div class="market-link">
+				<a href="https://trade.nestex.one/spot/BTCS_USDT" target="_blank">BTCS / USDT</a>
+			  </div>
+			</div>
+			
+			<div class="marketRow">
+			  <div class="market-name">KlingEX</div>
+			  <div class="market-link">
+				<a href="https://klingex.io/trade/BTCS-USDT" target="_blank">BTCS / USDT</a>
+			  </div>
+			</div>
+
+			<div class="marketRowLive">
+			  <script defer src="https://www.livecoinwatch.com/static/lcw-widget.js"></script>
+			  <div
+				class="livecoinwatch-widget-6"
+				lcw-coin="____BTCS"
+				lcw-base="USD"
+				lcw-period="d"
+				lcw-color-tx="#abb8c3"
+				lcw-color-bg="#1f2434"
+				lcw-border-w="0"
+			  ></div>
+			</div>
+			<div><br><br><a href="/swap" class="swap-button">BTCS SWAP !beta&nbsp;</a></div>
+  </div>
+</div>
+
+<div class="pure-u-1-2">
+  <div class="boxStats" id="boxStatsRight">
+  		<div class="boxLowerHeader">
+			<div class="market-link">
+				<a href="https://www.mytherrablockchain.org/" target="_blank">
+				{{=capitalizeFirstLetter(it.stats.pools['mytherra'].name)}}</a> Network Stats
+			</div>
+		</div>
+    <div class="boxStatsList">
+      <div>
+	  	<div id="orHolder">
+            <div id="orLine"></div>
+        </div>
+        <div><i class="fas fa-bars fa-fw"></i> <small>Block Height:</small> <span id="statsNetworkBlocks_mytherra">{{=it.stats.pools['mytherra'].poolStats.networkBlocks}}</span></div>
+        <div><i class="fas fa-gauge-simple-high fa-fw"></i> <small>Network H/s:</small> <span id="statsnetworkHash_mytherra">{{=it.stats.pools['mytherra'].poolStats.networkHashString}}</span></div>
+        <div><i class="fas fa-unlock fa-fw"></i> <small>Difficulty:</small> <span id="statsNetworkDiff_mytherra">{{= it.getReadableDifficultyString(it.stats.pools['mytherra'].poolStats.networkDiff) }}</span></div>
+        <div><i class="fas fa-signal fa-fw"></i> <small>Node Connections:</small> <span id="statsNetworkConnections_mytherra">{{=it.stats.pools['mytherra'].poolStats.networkConnections}}</span></div>
+        <div><i class="fas fa-code-fork fa-fw"></i> <small>Daemon:</small> <span id="statsNetworkVersion_mytherra">{{=it.stats.pools['mytherra'].poolStats.networkVersion}}</span></div>
+        <div><i class="fas fa-flask fa-fw"></i> <small>Algorithm:</small> <span>{{=capitalizeFirstLetter(it.stats.pools['mytherra'].algorithm)}}</span></div>
+		<div id="orHolder">
+            <div id="orLine"></div>
+        </div>
+	  </div>
+    </div>
+			<div class="marketCoin">
+			  {{=capitalizeFirstLetter(it.stats.pools['mytherra'].name)}} Markets
+			</div>
+
+			<div class="marketRow">
+			  <div class="market-name">KlingEX</div>
+			  <div class="market-link">
+				<a href="https://klingex.io/trade/MYT-USDT" target="_blank">MYT / USDT</a>
+			  </div>
+			</div>
+			<div><br><br><a href="/swap_mytherra" class="swap-button">MYT SWAP !beta&nbsp;</a></div>
+  </div>
+</div>
+
+</div>
+<script>
+  function getReadableHashRateString(hashrate) {
+    if (hashrate >= 1e12) return (hashrate / 1e12).toFixed(2) + ' TH/s';
+    if (hashrate >= 1e9)  return (hashrate / 1e9).toFixed(2) + ' GH/s';
+    if (hashrate >= 1e6)  return (hashrate / 1e6).toFixed(2) + ' MH/s';
+    if (hashrate >= 1e3)  return (hashrate / 1e3).toFixed(2) + ' kH/s';
+    return hashrate + ' H/s';
+  }
+  
+  function capitalizeFirstLetter(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function updateNetworkStats(idPrefix, poolData) {
+    $('#networkBlocks_' + idPrefix).text(poolData.poolStats.networkBlocks);
+    $('#networkHash_' + idPrefix).text(getReadableHashRateString(poolData.poolStats.networkHash));
+    //$('#networkDiff_' + idPrefix).text(parseFloat(poolData.poolStats.networkDiff).toFixed(8));
+	$('#networkDiff_' + idPrefix).text(getReadableDifficultyString(poolData.poolStats.networkDiff));
+    $('#networkConnections_' + idPrefix).text(poolData.poolStats.networkConnections);
+    $('#networkVersion_' + idPrefix).text(poolData.poolStats.networkVersion);
+    $('#algorithm_' + idPrefix).text(capitalizeFirstLetter(poolData.algorithm));
+	$('#poolFee_' + idPrefix).text((parseFloat(poolData.fees) || 0) + '%');
+  }
+
+$(function () {
+    window.statsSource = new EventSource("/api/live_stats");
+    statsSource.addEventListener('message', function (e) {
+        if (document.hidden) return;
+        const stats = JSON.parse(e.data);
+        
+        for (let algo in stats.algos) {
+            // Update to show both pool and solo workers if you're displaying them separately
+            $('#statsMiners' + algo).text(stats.algos[algo].workers);
+            $('#statsSoloMiners' + algo).text(stats.algos[algo].soloWorkers || 0);
+            
+            // Update hashrates
+            $('#statsHashrate' + algo).text(stats.algos[algo].hashrateString);
+            // If displaying separately:
+            $('#statsPoolHashrate' + algo).text(stats.algos[algo].poolHashrateString || '0 H/s');
+            $('#statsSoloHashrate' + algo).text(stats.algos[algo].soloHashrateString || '0 H/s');
+        }
+        
+        for (let pool in stats.pools) {
+            // Update miner counts
+            $('#statsMiners' + pool).text(stats.pools[pool].poolMinerCount || stats.pools[pool].minerCount);
+            $('#statsSoloMiners' + pool).text(stats.pools[pool].soloMinerCount || 0);
+            
+            $('#statsHashrate' + pool).text(stats.pools[pool].hashrateString);
+            updateNetworkStats(pool, stats.pools[pool]);
+        }
     });
+});
 </script>

@@ -42,7 +42,9 @@ module.exports = function (logger) {
         'admin.html': 'admin',
         'mining_key.html': 'mining_key',
         'miner_stats.html': 'miner_stats',
-        'payments.html': 'payments'
+        'payments.html': 'payments',
+		'swap.html': 'swap',
+		'swap_mytherra.html': 'swap_mytherra'
     };
 
     var pageTemplates = {};
@@ -52,6 +54,18 @@ module.exports = function (logger) {
 
     var keyScriptTemplate = '';
     var keyScriptProcessed = '';
+	
+	function getReadableDifficultyString(difficulty) {
+		  if (difficulty >= 1e24) return (difficulty / 1e24).toFixed(2) + ' Y';
+		  if (difficulty >= 1e21) return (difficulty / 1e21).toFixed(2) + ' Z';
+		  if (difficulty >= 1e18) return (difficulty / 1e18).toFixed(2) + ' E';
+		  if (difficulty >= 1e15) return (difficulty / 1e15).toFixed(2) + ' P';
+		  if (difficulty >= 1e12) return (difficulty / 1e12).toFixed(2) + ' T';
+		  if (difficulty >= 1e9)  return (difficulty / 1e9).toFixed(2) + ' G';
+		  if (difficulty >= 1e6)  return (difficulty / 1e6).toFixed(2) + ' M';
+		  if (difficulty >= 1e3)  return (difficulty / 1e3).toFixed(2) + ' k';
+	return difficulty.toFixed(2);
+	}
 
     var processTemplates = function () {
 
@@ -60,14 +74,16 @@ module.exports = function (logger) {
             pageProcessed[pageName] = pageTemplates[pageName]({
                 poolsConfigs: poolConfigs,
                 stats: portalStats.stats,
-                portalConfig: portalConfig
+                portalConfig: portalConfig,
+				getReadableDifficultyString: getReadableDifficultyString
             });
             indexesProcessed[pageName] = pageTemplates.index({
                 page: pageProcessed[pageName],
                 selected: pageName,
                 stats: portalStats.stats,
                 poolConfigs: poolConfigs,
-                portalConfig: portalConfig
+                portalConfig: portalConfig,
+				getReadableDifficultyString: getReadableDifficultyString
             });
         }
 
@@ -118,18 +134,27 @@ module.exports = function (logger) {
         readPageFiles(Object.keys(pageFiles));
     });
 
-    var buildUpdatedWebsite = function () {
-        portalStats.getGlobalStats(function () {
-            processTemplates();
+var buildUpdatedWebsite = function () {
+    portalStats.getGlobalStats(function () {
+        processTemplates();
 
-            var statData = 'data: ' + JSON.stringify(portalStats.stats) + '\n\n';
-            for (var uid in portalApi.liveStatConnections) {
-                var res = portalApi.liveStatConnections[uid];
+        var statData = 'data: ' + JSON.stringify(portalStats.stats) + '\n\n';
+        
+        for (var uid in portalApi.liveStatConnections) {
+            var res = portalApi.liveStatConnections[uid];
+            try {
                 res.write(statData);
+                // Only flush if the method exists
+                if (typeof res.flush === 'function') {
+                    res.flush();
+                }
+            } catch(e) {
+                console.error('Error writing to connection', uid, e);
+                delete portalApi.liveStatConnections[uid];
             }
-
-        });
-    };
+        }
+    });
+};
 
     setInterval(buildUpdatedWebsite, websiteConfig.stats.updateInterval * 1000);
 
@@ -226,19 +251,21 @@ module.exports = function (logger) {
         }
     };
 
-    var minerpage = function (req, res, next) {
-        var address = req.params.address || null;
-        if (address != null) {
-            address = address.split(".")[0];
-            portalStats.getBalanceByAddress(address, function () {
-                processTemplates();
-                res.header('Content-Type', 'text/html');
-                res.end(indexesProcessed['miner_stats']);
-            });
-        }
-        else
-            next();
-    };
+	var minerpage = function (req, res, next) {
+		var address = req.params.address || null;
+		if (address != null) {
+			address = address.split(".")[0];
+			portalStats.getBalanceByAddress(address, function (balanceData) {
+				// Set the address in stats so it's available in the template
+				portalStats.stats.address = address;
+				processTemplates();
+				res.header('Content-Type', 'text/html');
+				res.end(indexesProcessed['miner_stats']);
+			});
+		}
+		else
+			next();
+	};
 
     var payout = function (req, res, next) {
         var address = req.params.address || null;
@@ -279,8 +306,8 @@ module.exports = function (logger) {
 
         if (acceptLanguage) {
             const supportedLanguages = [
-                'en', 'en-US', 'ja', 'zh', 'zh-TW', 'zh-HK', 'fr', 'es', 'de', 'ru',
-                'hi', 'ar', 'pt', 'it', 'tl', 'id', 'ms', 'ko', 'vi', 'tr'
+                'en', 'en-US', 'ja', 'zh', 'zh-TW', 'zh-HK', 'fr', 'es', 'de', 'ro', 'ru',
+                'hi', 'ar', 'pt', 'it', 'tl', 'id', 'ms', 'ko', 'vi', 'tr', 'hu'
             ];
             const languages = acceptLanguage.split(',').map(lang => lang.split(';')[0].trim());
 
@@ -318,19 +345,67 @@ module.exports = function (logger) {
         }
         next();
     });
-
-    //app.get('/stats/shares/:coin', usershares);
-    //app.get('/stats/shares', shares);
-    //app.get('/payout/:address', payout);
-    app.use(compress());
-    app.get('/workers/:address', minerpage);
-    app.get('/:page', route);
-    app.get('/', route);
-
-    app.get('/api/:method', function (req, res, next) {
+	
+	app.get('/api/:method', function (req, res, next) {
         portalApi.handleApiRequest(req, res, next);
     });
+	
+	app.get('/2swap_info', async (req, res) => {
+	  const coin = req.query.coin || 'bitcoin';
+	  const url = `https://bitcoinsilver.top/api/swap/?action=data&coin=${coin}`;
+	  const response = await fetch(url);
+	  const data = await response.json();
+	  res.json(data);
+	});
+	
+	app.get('/2swap_check_id', async (req, res) => {
+	  const id = req.query.id || '13';
+      const url = `https://bitcoinsilver.top/api/swap/?action=swap&id=${encodeURIComponent(id)}`;
+	  const response = await fetch(url);
+	  const data = await response.json();
+	  res.json(data);
+	});
 
+	app.post('/2swap_query', async (req, res) => {
+	  try {
+		const { from, to, amount, action = 'data' } = req.body;
+
+		const response = await fetch(`https://bitcoinsilver.top/api/swap/?action=${action}`, {
+		  method: 'POST',
+		  headers: { 'Content-Type': 'application/json' },
+		  body: JSON.stringify({ from, to, amount })
+		});
+
+		if (!response.ok) throw new Error(`API responded with status ${response.status}`);
+
+		const data = await response.json();
+		res.json(data);
+	  } catch (error) {
+		console.error('Error fetching swap data:', error);
+		res.status(500).json({ error: 'Failed to fetch swap data' });
+	  }
+	});
+	
+	app.post('/2swap_swap', async (req, res) => {
+	  try {
+		const { from, to, amount, address, action = 'swap' } = req.body;
+
+		const response = await fetch(`https://bitcoinsilver.top/api/swap/?action=${action}`, {
+		  method: 'POST',
+		  headers: { 'Content-Type': 'application/json' },
+		  body: JSON.stringify({ from, to, amount, address })
+		});
+
+		//if (!response.ok) throw new Error(`API responded with status ${response.status}`);
+
+		const data = await response.json();
+		res.json(data);
+	  } catch (error) {
+		console.error('Error fetching swap data:', error);
+		res.status(500).json({ error: 'Failed to fetch swap data' });
+	  }
+	});
+	
     app.post('/api/admin/:method', function (req, res, next) {
         if (portalConfig.website
             && portalConfig.website.adminCenter
@@ -345,8 +420,15 @@ module.exports = function (logger) {
             next();
 
     });
+	
+	app.use(compress());
+    app.get('/stats/shares/:coin', usershares);
+    app.get('/stats/shares', shares);
+    app.get('/payout/:address', payout);
+    app.get('/workers/:address', minerpage);
+    app.get('/:page', route);
+    app.get('/', route);
 
-    app.use(compress());
     app.use('/static', express.static('website/static'));
 
     app.use(function (err, req, res, next) {

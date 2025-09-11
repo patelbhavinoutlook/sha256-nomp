@@ -10,8 +10,8 @@ var totalPaid;
 var totalShares;
 
 function getReadableHashRateString(hashrate){
-	hashrate = (hashrate * 1000000);
-	if (hashrate < 1000000) {
+	hashrate = parseFloat(hashrate) * 1000000; // Parse to number
+	if (isNaN(hashrate) || hashrate < 1000000) {
 		return '0 H/s';
 	}
 	var byteUnits = [' H/s', ' KH/s', ' MH/s', ' GH/s', ' TH/s', ' PH/s', ' EH/s', ' ZH/s', ' YH/s' ];
@@ -21,18 +21,21 @@ function getReadableHashRateString(hashrate){
 }
 
 function getReadableLuckTime(lucktime){
-        var luck = lucktime;
-        var timeUnits = [ ' Days', ' Hours', ' Minutes' ];
-        if (luck < 1) {
-                luck = luck * 24;
-                if (luck < 1) {
-                        luck = luck * 60;
-                        return luck.toFixed(2) + timeUnits[2];
-                } else {
-                        return luck.toFixed(2) + timeUnits[1];
-                }
-        }
-        return luck.toFixed(3) + timeUnits[0];
+	var luck = parseFloat(lucktime); // Parse to number
+	if (isNaN(luck) || !isFinite(luck)) {
+		return 'N/A';
+	}
+	var timeUnits = [ ' Days', ' Hours', ' Minutes' ];
+	if (luck < 1) {
+		luck = luck * 24;
+		if (luck < 1) {
+			luck = luck * 60;
+			return luck.toFixed(2) + timeUnits[2];
+		} else {
+			return luck.toFixed(2) + timeUnits[1];
+		}
+	}
+	return luck.toFixed(3) + timeUnits[0];
 }
 
 function timeOfDayFormat(timestamp){
@@ -134,7 +137,9 @@ function calculateAverageHashrate(worker) {
 }
 
 function triggerChartUpdates(){
-    workerHashrateChart.update();
+    if (workerHashrateChart) {
+        workerHashrateChart.update();
+    }
 }
 
 function displayCharts() {
@@ -156,24 +161,38 @@ function displayCharts() {
 }
 
 function updateStats() {
-	totalHash = statData.totalHash;
-	totalPaid = statData.paid;
-	totalBal = statData.balance;
-	totalImmature = statData.immature;
-	totalShares = statData.totalShares;
+	totalHash = parseFloat(statData.totalHash) || 0;
+	totalPaid = parseFloat(statData.paid) || 0;
+	totalBal = parseFloat(statData.balance) || 0;
+	totalImmature = parseFloat(statData.immature) || 0;
+	totalShares = parseFloat(statData.totalShares) || 0;
+	
 	// do some calculations
 	var luckDays = 0;
-	for (var w in statData.workers) { luckDays = luckDays + 1 / statData.workers[w].luckDays; }
-	luckDays = (1 / luckDays);
+	var validWorkers = 0;
+	for (var w in statData.workers) { 
+		var workerLuck = parseFloat(statData.workers[w].luckDays);
+		if (!isNaN(workerLuck) && isFinite(workerLuck) && workerLuck > 0) {
+			luckDays = luckDays + 1 / workerLuck;
+			validWorkers++;
+		}
+	}
+	if (validWorkers > 0) {
+		luckDays = (1 / luckDays);
+	} else {
+		luckDays = 0;
+	}
+	
 	// update miner stats
 	$("#statsHashrate").text(getReadableHashRateString(totalHash));
 	$("#statsHashrateAvg").text(getReadableHashRateString(calculateAverageHashrate(null)));
 	$("#statsLuckDays").text(getReadableLuckTime(luckDays));
-	$("#statsTotalImmature").text(totalImmature);
-	$("#statsTotalBal").text(totalBal);
-	$("#statsTotalPaid").text(totalPaid);
-	$("#statsTotalShares").text(totalShares.toFixed(2));
+	$("#statsTotalImmature").text(totalImmature.toFixed(8));
+	$("#statsTotalBal").text(totalBal.toFixed(8));
+	$("#statsTotalPaid").text(totalPaid.toFixed(8));
+	$("#statsTotalShares").text((totalShares/1000000).toFixed(2) + 'M');
 }
+
 function updateWorkerStats() {
 	// update worker stats
 	var i=0;
@@ -183,12 +202,13 @@ function updateWorkerStats() {
 		$("#statsHashrate"+htmlSafeWorkerName).text(getReadableHashRateString(statData.workers[w].hashrate));
 		$("#statsHashrateAvg"+htmlSafeWorkerName).text(getReadableHashRateString(calculateAverageHashrate(saneWorkerName)));
 		$("#statsLuckDays"+htmlSafeWorkerName).text(getReadableLuckTime(statData.workers[w].luckDays));
-		$("#statsPaid"+htmlSafeWorkerName).text(statData.workers[w].paid);
-		$("#statsBalance"+htmlSafeWorkerName).text(statData.workers[w].balance);
-		$("#statsShares"+htmlSafeWorkerName).text(Math.round(statData.workers[w].currRoundShares * 100) / 100);
+		$("#statsPaid"+htmlSafeWorkerName).text(parseFloat(statData.workers[w].paid || 0).toFixed(8));
+		$("#statsBalance"+htmlSafeWorkerName).text(parseFloat(statData.workers[w].balance || 0).toFixed(8));
+		$("#statsShares"+htmlSafeWorkerName).text(Math.round(parseFloat(statData.workers[w].currRoundShares || 0) * 100) / 100);
 		$("#statsDiff"+htmlSafeWorkerName).text(statData.workers[w].diff);
 	}
 }
+
 function addWorkerToDisplay(name, htmlSafeName, workerObj) {
 	var htmlToAdd = "";
 	htmlToAdd = '<div class="boxStats" id="boxStatsLeft" style="float:left; margin: 9px; min-width: 260px;"><div class="boxStatsList">';
@@ -196,10 +216,10 @@ function addWorkerToDisplay(name, htmlSafeName, workerObj) {
 	htmlToAdd+='<div><i class="fas fa-tachometer-alt fa-fw"></i> <span id="statsHashrate'+htmlSafeName+'">'+getReadableHashRateString(workerObj.hashrate)+'</span> (Now)</div>';
 	htmlToAdd+='<div><i class="fas fa-tachometer-alt fa-fw"></i> <span id="statsHashrateAvg'+htmlSafeName+'">'+getReadableHashRateString(calculateAverageHashrate(name))+'</span> (Avg)</div>';
 	htmlToAdd+='<div><i class="fas fa-unlock-alt fa-fw"></i> <small>Diff:</small> <span id="statsDiff'+htmlSafeName+'">'+workerObj.diff+'</span></div>';
-	htmlToAdd+='<div><i class="fas fa-cog fa-fw"></i> <small>Shares:</small> <span id="statsShares'+htmlSafeName+'">'+(Math.round(workerObj.currRoundShares * 100) / 100)+'</span></div>';
+	htmlToAdd+='<div><i class="fas fa-cog fa-fw"></i> <small>Shares:</small> <span id="statsShares'+htmlSafeName+'">'+(Math.round(parseFloat(workerObj.currRoundShares || 0) * 100) / 100)+'</span></div>';
 	htmlToAdd+='<div><i class="fas fa-clock fa-fw"></i> <small>Luck:</small> <span id="statsLuckDays'+htmlSafeName+'">'+getReadableLuckTime(workerObj.luckDays)+'</span></div>';
-	htmlToAdd+='<div><i class="fas fa-money-bill-alt fa-fw"></i> <small>Bal:</small> <span id="statsBalance'+htmlSafeName+'">'+workerObj.balance+'</span></div>';
-	htmlToAdd+='<div><i class="fas fa-money-bill-alt fa-fw"></i> <small>Paid:</small> <span id="statsPaid'+htmlSafeName+'">'+workerObj.paid+'</span></div>';
+	htmlToAdd+='<div><i class="fas fa-money-bill-alt fa-fw"></i> <small>Bal:</small> <span id="statsBalance'+htmlSafeName+'">'+parseFloat(workerObj.balance || 0).toFixed(8)+'</span></div>';
+	htmlToAdd+='<div><i class="fas fa-money-bill-alt fa-fw"></i> <small>Paid:</small> <span id="statsPaid'+htmlSafeName+'">'+parseFloat(workerObj.paid || 0).toFixed(8)+'</span></div>';
 	htmlToAdd+='</div></div></div>';
 	$("#boxesWorkers").html($("#boxesWorkers").html()+htmlToAdd);
 }
@@ -218,7 +238,7 @@ function rebuildWorkerDisplay() {
 nv.utils.windowResize(triggerChartUpdates);
 
 // grab initial stats
-$.getJSON('/api/worker_stats?'+_miner, function(data){
+$.getJSON('/api/worker_stats?' + _miner, function(data){
     statData = data;
 	for (var w in statData.workers) { _workerCount++; }
 	buildChartData();
@@ -228,31 +248,30 @@ $.getJSON('/api/worker_stats?'+_miner, function(data){
 });
 
 // live stat updates
-statsSource.addEventListener('message', function(e){
-	if (document.hidden) return;
-	
-	// TODO, create miner_live_stats...
-	// miner_live_stats will return the same josn except without the worker history
-	// FOR NOW, use this to grab updated stats
-	$.getJSON('/api/worker_stats?'+_miner, function(data){
-		statData = data;
-		// check for missing workers
-		var wc = 0;
-		var rebuilt = false;
-		// update worker stats
-		for (var w in statData.workers) { wc++; }
-		// TODO, this isn't 100% fool proof!
-		if (_workerCount != wc) {
-			if (_workerCount > wc) {
-				rebuildWorkerDisplay();
-				rebuilt = true;
+if (window.statsSource) {
+	statsSource.addEventListener('message', function(e){
+		if (document.hidden) return;
+		
+		// Fetch updated stats
+		$.getJSON('/api/worker_stats?' + _miner, function(data){
+			statData = data;
+			// check for missing workers
+			var wc = 0;
+			var rebuilt = false;
+			// update worker stats
+			for (var w in statData.workers) { wc++; }
+			if (_workerCount != wc) {
+				if (_workerCount > wc) {
+					rebuildWorkerDisplay();
+					rebuilt = true;
+				}
+				_workerCount = wc;
 			}
-			_workerCount = wc;
-		}
-		rebuilt = (rebuilt || updateChartData());
-		updateStats();
-		if (!rebuilt) {
-			updateWorkerStats();
-		}
+			rebuilt = (rebuilt || updateChartData());
+			updateStats();
+			if (!rebuilt) {
+				updateWorkerStats();
+			}
+		});
 	});
-});
+}

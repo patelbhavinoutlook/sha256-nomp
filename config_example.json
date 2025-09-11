@@ -1,21 +1,23 @@
 {
     "logLevel": "debug",
-    "logColors": true,
+    "logColors": false,
     "cliPort": 17117,
     "clustering": {
         "enabled": true,
         "forks": "auto"
     },
+
     "defaultPoolConfigs": {
-        "blockRefreshInterval": 500,
+        "blockRefreshInterval": 15000,
         "jobRebroadcastTimeout": 55,
         "connectionTimeout": 600,
         "emitInvalidBlockHashes": false,
         "validateWorkerUsername": true,
         "tcpProxyProtocol": false,
+		"asicboost": true,
         "banning": {
             "enabled": true,
-            "time": 600,
+            "time": 300,
             "invalidPercent": 50,
             "checkThreshold": 500,
             "purgeInterval": 300
@@ -28,23 +30,23 @@
     },
     "website": {
         "enabled": true,
-        "host": "0.0.0.0",
-        "port": 8080,
-        "stratumHost": "cryppit.com",
+        "host": "172.19.20.9",
+        "port": 50301,
+        "stratumHost": "sha256-mining.go.ro",
         "stats": {
-            "updateInterval": 300,
+            "updateInterval": 90,
             "historicalRetention": 28800,
             "hashrateWindow": 600
         },
         "adminCenter": {
             "enabled": false,
-            "password": "password"
+            "password": ""
         },
-        "tlsOptions": {
-            "enabled": false,
-            "cert": "",
-            "key": ""
-        }
+"tlsOptions": {
+  "enabled": false,
+  "key": "",
+  "cert": ""
+}
     },
     "redis": {
         "host": "127.0.0.1",
@@ -104,9 +106,10 @@
         "enabled": false,
         "updateInterval": 600,
         "depth": 0.90,
-        "usePoloniex": true,
-        "useCryptsy": true,
-        "useMintpal": true,
-        "useBittrex": true
+        "usePoloniex": false,
+        "useCryptsy": false,
+        "useMintpal": false,
+        "useBittrex": false
     }
 }
+

@@ -7,6 +7,18 @@
         display: block;
         height: 280px;
     }
+	
+	#menu{
+        background-color: #3d3d3d;
+        min-width: 170px;
+    }
+
+    #menu > .menuHeader{
+        color: #e3f7ff;
+        border-bottom: 1px solid #7f878b;
+        font-size: 1.2em;
+        padding: 16px 16px 4px 15px;
+    }
 
     .poolWrapper {
         background: #ddd;
@@ -29,6 +41,7 @@
     table th{
         background: #c7c7c7;
     }
+
 </style>
 <div id="topPool">
     <div class="poolWrapper">
@@ -36,6 +49,7 @@
             Pool Tab Stats
         </div>
         <div class="poolMinerTable">
+		  <div class="table-responsive">
             <table class="pure-table">
                 <thead>
                     <tr>
@@ -66,6 +80,7 @@
                 </tr>
                 {{ } }}
             </table>
+		  </div>
         </div>
     </div>
 </div>

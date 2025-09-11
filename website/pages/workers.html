@@ -2,12 +2,23 @@
     #topPool {
         padding: 18px 18px 0px 18px;
     }
-
     #topPool>div>div>svg {
         display: block;
         height: 280px;
     }
+	
+	#menu{
+        background-color: #3d3d3d;
+        min-width: 170px;
+    }
 
+    #menu > .menuHeader{
+        color: #e3f7ff;
+        border-bottom: 1px solid #7f878b;
+        font-size: 1.2em;
+        padding: 16px 16px 4px 15px;
+    }
+	
     .poolWrapper {
         background: #ddd;
         border: solid 1px #c7c7c7;
@@ -15,83 +26,253 @@
         padding: 5px;
         margin-bottom: 18px;
     }
-
     .poolLabel {
         font-size: 1.2em;
         text-align: center;
         padding: 4px;
     }
-
     table {
         background: #ddd;
         width: 100%;
     }
-
     table th {
         background: #c7c7c7;
     }
+    .soloSection {
+        margin-top: 20px;
+        border-top: 2px solid #f0ad4e;
+        padding-top: 15px;
+    }
+    .soloLabel {
+        background: #f0ad4e;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 3px;
+        display: inline-block;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .minerType {
+        font-size: 0.8em;
+        padding: 2px 5px;
+        border-radius: 3px;
+        margin-left: 5px;
+    }
+    .poolMiner {
+        background: #5cb85c;
+        color: white;
+    }
+    .soloMiner {
+        background: #f0ad4e;
+        color: white;
+    } 
+
 </style>
 <script type="text/javascript">
     function searchKeyPress(e) {
-        // look for window.event in case event isn't passed in
         e = e || window.event;
         if (e.keyCode == 13) {
-            document.getElementById('btnSearch').click();
+            // Get the button that's in the same container as the input
+            var input = e.target || e.srcElement;
+            var button = $(input).closest('.input-group').find('.btn-lg')[0];
+            if (button) {
+                button.click();
+            }
             return false;
         }
         return true;
     }
+    
     $(document).ready(function () {
+        // Handle each button click individually
         $('.btn-lg').click(function () {
-            window.location = "workers/" + $('.input-lg').val();
+            // Get the input that's in the same container as this button
+            var input = $(this).closest('.input-group').find('.input-lg');
+            var address = input.val().trim();
+            
+            if (address) {
+                // Use absolute path from root
+                window.location.href = "/workers/" + address;
+            }
         });
     });
 </script>
 {{ function capitalizeFirstLetter(t){return t.charAt(0).toUpperCase()+t.slice(1)} }}
 {{ var i=0; for(var pool in it.stats.pools) { }}
+{{ var poolData = it.stats.pools[pool]; }}
 <div id="topPool">
     <div class="poolWrapper">
         <div class="poolLabel">
             <span style="float:right; margin-bottom: 8px;">
-                <small><label>Miner Lookup:
-                        <input type="text" class="form-control input-lg" name="lookup"
-                            onkeypress="return searchKeyPress(event);">
-                    </label>
-                    <span class="input-group-btn">
-                        <button class="btn btn-default btn-lg" type="button">Lookup</button>
-                    </span>
-                </small>
+				<span style="float:right; margin-bottom: 8px;">
+					<small>
+						<div class="input-group">
+							<label>Miner Lookup:
+								<input type="text" class="form-control input-lg" name="lookup"
+									onkeypress="return searchKeyPress(event);">
+							</label>
+							<span class="input-group-btn">
+								<button class="btn btn-default btn-lg" type="button">Lookup</button>
+							</span>
+						</div>
+					</small>
+				</span>
             </span>
-            {{=capitalizeFirstLetter(it.stats.pools[pool].name)}} Top Miners &nbsp;&nbsp;
-            <small><i class="fas fa-users fa-fw"></i> <span
-                    id="statsMiners{{=pool}}">{{=it.stats.pools[pool].minerCount}}</span> Miners &nbsp;&nbsp;
-                <i class="fas fa-gears fa-fw"></i> <span
-                    id="statsWorkers{{=pool}}">{{=it.stats.pools[pool].workerCount}}</span> Workers &nbsp;&nbsp;
-                <i class="fas fa-chart-bar fa-fw"></i> <span
-                    id="statsWorkers{{=pool}}">{{=it.stats.pools[pool].shareCount}}</span> Shares </small>
+            {{=capitalizeFirstLetter(poolData.name)}} Pool &nbsp;&nbsp;<br>
+				<small>
+					<i class="fas fa-users fa-fw"></i> 
+					<span id="statsMiners{{=pool}}">{{=poolData.minerCount || 0}}</span> Pool Miners &nbsp;&nbsp;
+					<i class="fas fa-user fa-fw"></i> 
+					<span id="statsSoloMiners{{=pool}}">{{=poolData.soloMinerCount || 0}}</span> Solo Miners &nbsp;&nbsp;
+					<i class="fas fa-tachometer-alt fa-fw"></i> 
+					Pool: {{=poolData.hashrateString || '0 H/s'}} &nbsp;&nbsp;
+					<i class="fas fa-tachometer-alt fa-fw"></i> 
+					Solo: {{=poolData.soloHashrateString || '0 H/s'}} 
+				</small>
         </div>
+        
+        <!-- POOL MINERS SECTION -->
         <div class="poolMinerTable">
-            <table class="pure-table">
-                <thead>
-                    <tr>
-                        <th>Address</th>
-                        <th>Shares</th>
-                        <th>Efficiency</th>
-                        <th>Hashrate</th>
-                    </tr>
-                </thead>
-                {{ for(var worker in it.stats.pools[pool].miners) { }}
-                {{var workerstat = it.stats.pools[pool].miners[worker];}}
-                <tr class="pure-table-odd">
-                    <td><a href="/workers/{{=worker.split('.')[0]}}">{{=worker}}</a></td>
-                    <td>{{=Math.round(workerstat.currRoundShares * 100) / 100}}</td>
-                    <td>{{? workerstat.shares > 0}} {{=Math.floor(10000 * workerstat.shares / (workerstat.shares +
-                        workerstat.invalidshares)) / 100}}% {{??}} 0% {{?}}</td>
-                    <td>{{=workerstat.hashrateString}}</td>
+            <h4 style="margin: 10px 0;">
+                <span class="poolMiner minerType">POOL MINERS</span>
+                {{ if (poolData.paymentMode === 'prop') { }}
+                <small style="color: #666;">(PROP - Proportional Rewards)</small>
+                {{ } else if (poolData.paymentMode === 'pplnt') { }}
+                <small style="color: #666;">(PPLNT - Pay Per Last N Time)</small>
+                {{ } }}
+            </h4>
+			<div class="table-responsive">
+             <table class="pure-table">
+				<thead>
+					<tr>
+						<th>Address</th>
+						<th>Valid Shares</th>
+						<th>Round Shares</th>
+						<th>Efficiency</th>
+						<th>Hashrate</th>
+						<th>Luck (Days)</th>
+					</tr>
+				</thead>
+				<tbody>
+                {{ var minerCount = 0; }}
+                {{ var activeMiners = 0; }}
+                {{ for(var worker in poolData.miners) { }}
+                {{ var workerstat = poolData.miners[worker]; }}
+                {{ if (minerCount < 25 && workerstat.hashrate > 0) { }}
+					<tr class="pure-table-odd">
+						<td>
+							<a href="/workers/{{=worker.split('.')[0]}}">{{=worker}}</a>
+							<span class="poolMiner minerType" style="font-size: 0.7em;">POOL</span>
+						</td>
+						<td>{{=Math.round(workerstat.shares)}}</td>
+						<td>{{=Math.round(workerstat.currRoundShares * 100) / 100}}</td>
+						<td>{{? workerstat.shares > 0}} {{=Math.floor(10000 * workerstat.shares / (workerstat.shares + workerstat.invalidshares)) / 100}}% {{??}} 0% {{?}}</td>
+						<td>{{=workerstat.hashrateString}}</td>
+						<td>{{=workerstat.luckDays || 'N/A'}}</td>
+					</tr>
+                {{ minerCount++; activeMiners++; }}
+                {{ } }}
+                {{ } }}
+                {{ if (activeMiners === 0) { }}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: #999;">
+                        No active pool miners at this time
+                    </td>
                 </tr>
                 {{ } }}
+                </tbody>
             </table>
+		   </div>
+            {{ 
+            var totalPoolMiners = 0;
+            for(var worker in poolData.miners) {
+                if(poolData.miners[worker].hashrate > 0) totalPoolMiners++;
+            }
+            }}
+            {{ if (totalPoolMiners > 25) { }}
+            <div style="text-align: center; padding: 10px; color: #666;">
+                Showing top 25 of {{=totalPoolMiners}} active pool miners
+            </div>
+            {{ } }}
         </div>
+        
+        <!-- SOLO MINERS SECTION -->
+        {{ if (poolData.soloWorkers && Object.keys(poolData.soloWorkers).length > 0) { }}
+        <div class="soloSection">
+            <h4 style="margin: 10px 0;">
+                <span class="soloMiner minerType">SOLO MINERS</span>
+                {{ if (poolData.soloMining) { }}
+                <small style="color: #666;">({{=poolData.soloFee || 0}}% fee on found blocks)</small>
+                {{ } }}
+            </h4>
+            <div class="poolMinerTable">
+			 <div class="table-responsive">
+                <table class="pure-table">
+					<thead>
+						<tr>
+							<th>Address</th>
+							<th>Valid Shares</th>
+							<th>Round Shares</th>
+							<th>Efficiency</th>
+							<th>Hashrate</th>
+							<th>Luck (Days)</th>
+						</tr>
+					</thead>
+					<tbody>
+                    {{ var soloCount = 0; }}
+                    {{ var activeSoloMiners = 0; }}
+                    {{ for(var worker in poolData.soloWorkers) { }}
+                    {{ var workerstat = poolData.soloWorkers[worker]; }}
+                    {{ if (soloCount < 25 && workerstat.hashrate > 0) { }}
+						<tr class="pure-table-odd">
+							<td>
+								<a href="/workers/{{=worker.split('.')[0]}}">{{=worker.split('.')[0]}}</a>
+								<span class="soloMiner minerType" style="font-size: 0.7em;">SOLO</span>
+							</td>
+							<td>{{=Math.round(workerstat.shares)}}</td>
+							<td>{{=Math.round(workerstat.currRoundShares * 100) / 100}}</td>
+							<td>{{? workerstat.shares > 0}} {{=Math.floor(10000 * workerstat.shares / (workerstat.shares + workerstat.invalidshares)) / 100}}% {{??}} 0% {{?}}</td>
+							<td>{{=workerstat.hashrateString}}</td>
+							<td>{{=workerstat.luckDays || 'N/A'}}</td>
+						</tr>
+                    {{ soloCount++; activeSoloMiners++; }}
+                    {{ } }}
+                    {{ } }}
+                    {{ if (activeSoloMiners === 0) { }}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px; color: #999;">
+                            No active solo miners at this time
+                        </td>
+                    </tr>
+                    {{ } }}
+                    </tbody>
+                </table>
+                {{ 
+                var totalSoloMiners = 0;
+                for(var worker in poolData.soloWorkers) {
+                    if(poolData.soloWorkers[worker].hashrate > 0) totalSoloMiners++;
+                }
+                }}
+                {{ if (totalSoloMiners > 25) { }}
+                <div style="text-align: center; padding: 10px; color: #666;">
+                    Showing top 25 of {{=totalSoloMiners}} active solo miners
+                </div>
+                {{ } }}
+            </div>
+		  </div>
+        </div>
+        {{ } else if (poolData.soloMining) { }}
+        <div class="soloSection">
+            <h4 style="margin: 10px 0;">
+                <span class="soloMiner minerType">SOLO MINERS</span>
+                <small style="color: #666;">({{=poolData.soloFee || 0}}% fee on found blocks)</small>
+            </h4>
+            <div style="text-align: center; padding: 20px; color: #999; background: #f9f9f9; border-radius: 3px;">
+                No active solo miners at this time
+            </div>
+        </div>
+        {{ } }}
+        
     </div>
 </div>
 {{ } }}

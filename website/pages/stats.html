@@ -7,6 +7,18 @@
         display: block;
         height: 280px;
     }
+	
+	#menu{
+        background-color: #3d3d3d;
+        min-width: 170px;
+    }
+
+    #menu > .menuHeader{
+        color: #e3f7ff;
+        border-bottom: 1px solid #7f878b;
+        font-size: 1.2em;
+        padding: 16px 16px 4px 15px;
+    }
 
     .chartWrapper {
         background: #eee;
@@ -101,6 +113,39 @@
     #bottomCharts {
         padding: 0px 18px 0px 18px;
     }
+	    .blockTypeLabel {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.75em;
+        margin-left: 5px;
+        font-weight: bold;
+    }
+    .poolBlockLabel {
+        background: #5cb85c;
+        color: white;
+    }
+    .soloBlockLabel {
+        background: #f0ad4e;
+        color: white;
+    }
+    .blockStatRow {
+        display: flex;
+        justify-content: space-between;
+        padding: 3px 0;
+    }
+    .blockStatSection {
+        border-left: 3px solid transparent;
+        padding-left: 5px;
+        margin: 5px 0;
+    }
+    .poolBlockSection {
+        border-left-color: #5cb85c;
+    }
+    .soloBlockSection {
+        border-left-color: #f0ad4e;
+    }
+
 </style>
 
 <div id="topCharts">
@@ -108,10 +153,9 @@
         <div class="chartLabel">Pool Historical Hashrate</div>
         <div class="chartHolder"><svg id="poolHashrate"></svg></div>
     </div>
-    <div class="chartWrapper">
-        <div class="chartLabel">Pool Pending Blocks</div>
-        <div class="chartHolder"><svg id="poolPending"></svg></div>
-    </div>
+<div class="chartWrapper">
+    <div class="chartLabel">Pool Pending Blocks (Pool + Solo)</div>
+    <div class="chartHolder"><svg id="poolPending"></svg></div>
 </div>
 {{ function capitalizeFirstLetter(t){return t.charAt(0).toUpperCase()+t.slice(1)} }}
 {{ function readableDate(a) {
@@ -140,16 +184,31 @@ d.toString().match(/GMT([+-]\d{4})/)[0].replace('GMT', 'UTC') + ' ' +
                             id="statsHashrate{{=pool}}">{{=it.stats.pools[pool].hashrateString}}</span> (Now)</div>
                     <div><i class="fas fa-gauge-simple-high fa-fw"></i> <span id="statsHashrateAvg{{=pool}}">...</span>
                         (Avg)</div>
-                    <div><i class="fas fa-clock fa-fw"></i>&nbsp;Luck: <span id="statsLuckDays{=pool}}">
-                            {{
-                            function getReadableLuckTime(lucktime){
-                            var luck = lucktime;
-                            var timeUnits = [ ' Days', ' Hours', ' Minutes' ];
-                            if (luck < 1) { luck=luck * 24; if (luck < 1) { luck=luck * 60; return luck.toFixed(2) +
-                                timeUnits[2]; } else { return luck.toFixed(2) + timeUnits[1]; } } return luck +
-                                timeUnits[0]; } _luckTime=getReadableLuckTime(it.stats.pools[pool].luckDays); }}
-                                {{=_luckTime}}</span>
-                    </div>
+							<div><i class="fas fa-clock fa-fw"></i>&nbsp;Luck: 
+								<span id="statsLuckDays{{=pool}}">
+								  {{ 
+									var rawLuck = it.stats.pools[pool].luckDays || 0;
+									var luck = parseFloat(rawLuck);
+									var timeUnits = [ ' Days', ' Hours', ' Minutes' ];
+									var _luckTime = 'N/A';
+
+									if (!isNaN(luck)) {
+									  if (luck < 1) { 
+										luck *= 24; 
+										if (luck < 1) { 
+										  luck *= 60; 
+										  _luckTime = luck < 0.01 ? '< 1 Minute' : luck.toFixed(2) + timeUnits[2]; 
+										} else { 
+										  _luckTime = luck.toFixed(2) + timeUnits[1]; 
+										} 
+									  } else { 
+										_luckTime = luck.toFixed(2) + timeUnits[0]; 
+									  }
+									}
+								  }}
+								  {{= _luckTime }}
+								</span>
+							</div>
                     <div>
                         <i class="fas fa-chart-bar fa-fw"></i> Share: <span id="statsHashPercent{{=pool}}">
                             {{
@@ -179,7 +238,7 @@ d.toString().match(/GMT([+-]\d{4})/)[0].replace('GMT', 'UTC') + ' ' +
                             id="statsnetworkHash{{=pool}}">{{=it.stats.pools[pool].poolStats.networkHashString}}</span>
                     </div>
                     <div><i class="fas fa-unlock fa-fw"></i> <small>Difficulty:</small> <span
-                            id="statsNetworkDiff{{=pool}}">{{=(parseFloat(it.stats.pools[pool].poolStats.networkDiff)).toFixed(8)}}</span>
+                            id="statsNetworkDiff{{=pool}}">{{= it.getReadableDifficultyString(it.stats.pools[pool].poolStats.networkDiff) }}</span>
                     </div>
                     <div><i class="fas fa-signal fa-fw"></i> <small>Node Connections:</small> <span
                             id="statsNetworkConnections{{=pool}}">{{=it.stats.pools[pool].poolStats.networkConnections}}</span>
@@ -194,86 +253,112 @@ d.toString().match(/GMT([+-]\d{4})/)[0].replace('GMT', 'UTC') + ' ' +
             </div>
         </div>
     </div>
-    <div class="pure-u-1-3">
-        <div class="boxStats" id="boxStatsLeft">
-            <div class="boxLowerHeader">{{=capitalizeFirstLetter(it.stats.pools[pool].name)}} Block Stats</div>
-            <div class="boxStatsList">
-                <div>
-                    <div><i class="fas fa-cubes fa-fw"></i> Total Blocks
-                        {{=it.stats.pools[pool].poolStats.validBlocks}}</div>
-                    <div><i class="fas fa-hourglass-half fa-fw"></i> Pending
-                        {{=it.stats.pools[pool].blocks.pending}}</div>
-                    <div><i class="fas fa-gavel fa-fw"></i> Confirmed {{=it.stats.pools[pool].blocks.confirmed}}
-                    </div>
-                    <div><i class="fas fa-square-xmark fa-fw"></i> Orphaned
-                        {{=it.stats.pools[pool].blocks.orphaned}}</div>
-                    <div><i class="fas fa-square-check fa-fw"></i> Valid Shares
-                        {{=it.stats.pools[pool].poolStats.validShares}}</div>
-                    <div><i class="fas fa-square-minus fa-fw"></i> Invalid Shares
-                        {{=it.stats.pools[pool].poolStats.invalidShares}}</div>
+<div class="pure-u-1-3">
+    <div class="boxStats" id="boxStatsLeft">
+        <div class="boxLowerHeader">{{=capitalizeFirstLetter(it.stats.pools[pool].name)}} Block Stats</div>
+        <div class="boxStatsList">
+            <div>
+                <div><i class="fas fa-cubes fa-fw"></i> Total Blocks
+                    {{=it.stats.pools[pool].poolStats.validBlocks}}</div>
+                <div><i class="fas fa-hourglass-half fa-fw"></i> Pool Pending
+                    {{=it.stats.pools[pool].blocks.pending}}</div>
+                {{ if (it.stats.pools[pool].soloBlocks) { }}
+                <div><i class="fas fa-hourglass-half fa-fw"></i> Solo Pending
+                    {{=it.stats.pools[pool].soloBlocks.pending || 0}}</div>
+                {{ } }}
+                <div><i class="fas fa-gavel fa-fw"></i> Pool Confirmed {{=it.stats.pools[pool].blocks.confirmed}}
                 </div>
+                {{ if (it.stats.pools[pool].soloBlocks) { }}
+                <div><i class="fas fa-gavel fa-fw"></i> Solo Confirmed
+                    {{=it.stats.pools[pool].soloBlocks.confirmed || 0}}</div>
+                {{ } }}
+                <div><i class="fas fa-square-xmark fa-fw"></i> Orphaned
+                    {{=it.stats.pools[pool].blocks.orphaned}}</div>
+                <div><i class="fas fa-square-check fa-fw"></i> Valid Shares
+                    {{=it.stats.pools[pool].poolStats.validShares}}</div>
+                <div><i class="fas fa-square-minus fa-fw"></i> Invalid Shares
+                    {{=it.stats.pools[pool].poolStats.invalidShares}}</div>
             </div>
         </div>
     </div>
+</div>
     {{ } }}
 </div>
+
 {{ for(var pool in it.stats.pools) { }}
 {{ var blockscomb = new Array; }}
 <div class="pure-g" id="boxesLower">
     <div class="pure-u-1-1">
         <div class="boxStats" id="boxStatsRight">
-            <div class="boxLowerHeader">
-                {{=capitalizeFirstLetter(pool)}} Blocks Found &nbsp;&nbsp;
-                <span style="float:right;">
-                    <small>
-                        <i class="fas fa-bars fa-fw"></i> <span
-                            id="statsValidBlocks{{=pool}}">{{=it.stats.pools[pool].poolStats.validBlocks}}</span> Blocks
-                        &nbsp;&nbsp;
-                        <i class="fas fa-money-bill fa-fw"></i> Paid: <span
-                            id="statsTotalPaid{{=pool}}">{{=(parseFloat(it.stats.pools[pool].poolStats.totalPaid)).toFixed(8)}}</span>
-                        {{=it.stats.pools[pool].symbol}}
-                    </small>&nbsp;&nbsp;
-                </span>
-            </div>
+<div class="boxLowerHeader">
+    {{=capitalizeFirstLetter(pool)}} Blocks Found &nbsp;&nbsp;
+    <span style="float:right;">
+        <small>
+            <i class="fas fa-bars fa-fw"></i> 
+            <span id="statsValidBlocks{{=pool}}">
+                {{=it.stats.pools[pool].blocks.pending + it.stats.pools[pool].blocks.confirmed}}
+            </span> Total
+            (Pool: <span id="statsPoolBlocks{{=pool}}">
+                {{=it.stats.pools[pool].poolBlocks.pending + it.stats.pools[pool].poolBlocks.confirmed}}
+            </span>
+            {{ if (it.stats.pools[pool].soloBlocks && (it.stats.pools[pool].soloBlocks.pending > 0 || it.stats.pools[pool].soloBlocks.confirmed > 0)) { }}
+            | Solo: <span id="statsSoloBlocks{{=pool}}">
+                {{=it.stats.pools[pool].soloBlocks.pending + it.stats.pools[pool].soloBlocks.confirmed}}
+            </span>
+            {{ } }})
+            &nbsp;&nbsp;
+            <i class="fas fa-money-bill fa-fw"></i> Paid: <span
+                id="statsTotalPaid{{=pool}}">{{=(parseFloat(it.stats.pools[pool].poolStats.totalPaid)).toFixed(8)}}</span>
+            {{=it.stats.pools[pool].symbol}}
+        </small>&nbsp;&nbsp;
+    </span>
+</div>
             <div class="boxStatsList" style="margin-top: 9px;">
-                <!--<div id="{{=it.stats.pools[pool].name}}NewBlocks"></div>-->
-                {{ for(var b in it.stats.pools[pool].pending.blocks) { }}
-                {{ var block = it.stats.pools[pool].pending.blocks[b].split(":"); }}
-                <div style="margin-bottom: 9px; background-color: #eee; min-width:600px;">
+                
+				<!-- Pool Pending Blocks -->
+				{{ for(var b in it.stats.pools[pool].poolPending.blocks) { }}
+				{{ var block = it.stats.pools[pool].poolPending.blocks[b].split(":"); }}
+				<div style="margin-bottom: 9px; background-color: #eee; min-width:960px; border-left: 3px solid #5cb85c; padding: 5px;">
+					<i class="fas fa-bars fa-fw"></i>
+					<small>Block:</small>
+					{{ if (it.poolsConfigs[pool].coin.explorer && it.poolsConfigs[pool].coin.explorer.blockURL) { }}
+					<a href="{{=it.poolsConfigs[pool].coin.explorer.blockURL + block[0]}}" target="_blank">{{=block[2]}}</a>
+					{{ } else { }}
+					{{=block[2]}}
+					{{ } }}
+					{{if (block[4] != null) { }}
+					<span style="padding-left: 18px;"><small>{{=readableDate(block[4])}}</small></span>
+					{{ } }}
+					{{if (it.stats.pools[pool].poolPending.confirms && it.stats.pools[pool].poolPending.confirms[block[0]]) { }}
+						{{ var confirms = parseInt(it.stats.pools[pool].poolPending.confirms[block[0]]); }}
+						{{ var minConf = parseInt(it.poolsConfigs[pool].paymentProcessing.minConf); }}
+						{{ if (confirms >= minConf) { }}
+							<div style="float:right; text-align:right;">
+								<div><small style="color: green;">Confirmed !</small></div>
+								<div><small style="color: green;">Awaiting Payment</small></div>
+							</div>
+						{{ } else { }}
+						<span style="float:right; color: red;"><small>{{=confirms}} / {{=minConf}}</small></span>
+						{{ } }}
+					{{ } else { }}
+					<span style="float:right; color: red;"><small>*PENDING*</small></span>
+					{{ } }}
+					<div><i class="fas fa-gavel fa-fw"></i> <small>Found By:</small> 
+						<a href="/workers/{{=block[3].split('.')[0]}}">{{=block[3]}}</a>
+					</div>
+				</div>
+				{{ blockscomb.push(block);}}
+				{{ } }}
+				
+				<!-- Pool Confirmed Blocks -->
+                {{ var i=0; for(var b in it.stats.pools[pool].poolConfirmed.blocks) { }}
+                {{ if (i < 8) { i++; }}
+                {{ var block = it.stats.pools[pool].poolConfirmed.blocks[b].split(":"); }}
+                <div style="margin-bottom: 9px; background-color: #eeeeee; min-width:960px; border-left: 3px solid #5cb85c; padding: 5px;">
                     <i class="fas fa-bars fa-fw"></i>
                     <small>Block:</small>
                     {{ if (it.poolsConfigs[pool].coin.explorer && it.poolsConfigs[pool].coin.explorer.blockURL) { }}
-                    <a href="{{=it.poolsConfigs[pool].coin.explorer.blockURL + block[0]}}"
-                        target="_blank">{{=block[2]}}</a>
-                    {{ } else { }}
-                    {{=block[2]}}
-                    {{ } }}
-                    {{if (block[4] != null) { }}
-                    <span style="padding-left: 18px;"><small>{{=readableDate(block[4])}}</small></span>
-                    {{ } }}
-                    {{if (it.stats.pools[pool].pending.confirms) { }}
-                    {{if (it.stats.pools[pool].pending.confirms[block[0]]) { }}
-                    <span style="float:right; color: red;"><small>{{=it.stats.pools[pool].pending.confirms[block[0]]}}
-                            of 100</small></span>
-                    {{ } else { }}
-                    <span style="float:right; color: red;"><small>*PENDING*</small></span>
-                    {{ } }}
-                    {{ } else { }}
-                    <span style="float:right; color: red;"><small>*PENDING*</small></span>
-                    {{ } }}
-                    <div><i class="fas fa-gavel fa-fw"></i> <small>Mined By:</small> <a
-                            href="/workers/{{=block[3].split('.')[0]}}">{{=block[3]}}</a></div>
-                </div>
-                {{ blockscomb.push(block);}}
-                {{ } }}
-                {{ var i=0; for(var b in it.stats.pools[pool].confirmed.blocks) { }}
-                {{ if (i < 8) { i++; }} {{ var block=it.stats.pools[pool].confirmed.blocks[b].split(":"); }} <div
-                    style="margin-bottom: 9px; background-color: #eeeeee; min-width:600px;">
-                    <i class="fas fa-bars fa-fw"></i>
-                    <small>Block:</small>
-                    {{ if (it.poolsConfigs[pool].coin.explorer && it.poolsConfigs[pool].coin.explorer.blockURL) { }}
-                    <a href="{{=it.poolsConfigs[pool].coin.explorer.blockURL + block[0]}}"
-                        target="_blank">{{=block[2]}}</a>
+                    <a href="{{=it.poolsConfigs[pool].coin.explorer.blockURL + block[0]}}" target="_blank">{{=block[2]}}</a>
                     {{ } else { }}
                     {{=block[2]}}
                     {{ } }}
@@ -281,20 +366,92 @@ d.toString().match(/GMT([+-]\d{4})/)[0].replace('GMT', 'UTC') + ' ' +
                     <span style="padding-left: 18px;"><small>{{=readableDate(block[4])}}</small></span>
                     {{ } }}
                     <span style="float:right; padding-left: 18px; color: green;"><small>*PAID*</small></span>
-                    <div><i class="fas fa-gavel fa-fw"></i> <small>Mined By:</small> <a
-                            href="/workers/{{=block[3].split('.')[0]}}">{{=block[3]}}</a></div>
+                    <div><i class="fas fa-gavel fa-fw"></i> <small>Found By:</small> 
+                        <a href="/workers/{{=block[3].split('.')[0]}}">{{=block[3]}}</a>
+                    </div>
+                </div>
+                {{blockscomb.push(block);}}
+                {{ } }}
+                {{ } }}
+                
+                <!-- Solo Pending Blocks -->
+                {{ if (it.stats.pools[pool].soloPending && it.stats.pools[pool].soloPending.blocks.length > 0) { }}
+                {{ for(var b in it.stats.pools[pool].soloPending.blocks) { }}
+                {{ var block = it.stats.pools[pool].soloPending.blocks[b].split(":"); }}
+                <div style="margin-bottom: 9px; background-color: #ffeaa7; min-width:960px; border-left: 3px solid #f0ad4e; padding: 5px;">
+                    <i class="fas fa-bars fa-fw"></i>
+                    <small>Block:</small>
+                    {{ if (it.poolsConfigs[pool].coin.explorer && it.poolsConfigs[pool].coin.explorer.blockURL) { }}
+                    <a href="{{=it.poolsConfigs[pool].coin.explorer.blockURL + block[0]}}" target="_blank">{{=block[2]}}</a>
+                    {{ } else { }}
+                    {{=block[2]}}
+                    {{ } }}
+                    <span class="soloBlockLabel">SOLO</span>
+                    {{if (block[4] != null) { }}
+                    <span style="padding-left: 18px;"><small>{{=readableDate(block[4])}}</small></span>
+                    {{ } }}
+                    {{if (it.stats.pools[pool].soloPending.confirms && it.stats.pools[pool].soloPending.confirms[block[0]]) { }}
+                        {{ var confirms = parseInt(it.stats.pools[pool].soloPending.confirms[block[0]]); }}
+                        {{ var minConf = parseInt(it.poolsConfigs[pool].paymentProcessing.minConf); }}
+                        {{ if (confirms >= minConf) { }}
+							<div style="float:right; text-align:right;">
+								<div><small style="color: green;">Confirmed !</small></div>
+								<div><small style="color: green;">Awaiting Payment</small></div>
+							</div>
+                        {{ } else { }}
+                        <span style="float:right; color: red;"><small>{{=confirms}} / {{=minConf}}</small></span>
+                        {{ } }}
+                    {{ } else { }}
+                    <span style="float:right; color: red;"><small>*PENDING*</small></span>
+                    {{ } }}
+                    <div><i class="fas fa-gavel fa-fw"></i> <small>Found By:</small> 
+                        <a href="/workers/{{=block[3].split('.')[0]}}">{{=block[3]}}</a>
+                    </div>
+                </div>
+                {{ blockscomb.push(block);}}
+                {{ } }}
+                {{ } }}
+                               
+                <!-- Solo Confirmed Blocks -->
+                {{ if (it.stats.pools[pool].soloConfirmed && it.stats.pools[pool].soloConfirmed.blocks.length > 0) { }}
+                {{ var j=0; for(var b in it.stats.pools[pool].soloConfirmed.blocks) { }}
+                {{ if (j < 8) { j++; }}
+                {{ var block = it.stats.pools[pool].soloConfirmed.blocks[b].split(":"); }}
+                <div style="margin-bottom: 9px; background-color: #ffeaa7; min-width:960px; border-left: 3px solid #f0ad4e; padding: 5px;">
+                    <i class="fas fa-bars fa-fw"></i>
+                    <small>Block:</small>
+                    {{ if (it.poolsConfigs[pool].coin.explorer && it.poolsConfigs[pool].coin.explorer.blockURL) { }}
+                    <a href="{{=it.poolsConfigs[pool].coin.explorer.blockURL + block[0]}}" target="_blank">{{=block[2]}}</a>
+                    {{ } else { }}
+                    {{=block[2]}}
+                    {{ } }}
+                    <span class="soloBlockLabel">SOLO</span>
+                    {{if (block[4] != null) { }}
+                    <span style="padding-left: 18px;"><small>{{=readableDate(block[4])}}</small></span>
+                    {{ } }}
+                    <span style="float:right; padding-left: 18px; color: green;"><small>*PAID*</small></span>
+                    <div><i class="fas fa-gavel fa-fw"></i> <small>Found By:</small> 
+                        <a href="/workers/{{=block[3].split('.')[0]}}">{{=block[3]}}</a>
+                    </div>
+                </div>
+                {{blockscomb.push(block);}}
+                {{ } }}
+                {{ } }}
+                
             </div>
-            {{blockscomb.push(block);}}
-            {{ } }}
-            {{ } }}
-            <!--{{=JSON.stringify(blockscomb)}}-->
+        </div>
+    </div>
+</div>
+{{ } }}
+                
+            </div>
             <script>
                 var blockscomb = JSON.parse('{{=JSON.stringify(blockscomb)}}');
             </script>
         </div>
     </div>
 </div>
-</div>
+
 
 <div id="bottomCharts">
     <div class="chartWrapper" id="bottomCharts{{=pool}}" style="text-align:center;">
@@ -400,27 +557,38 @@ d.toString().match(/GMT([+-]\d{4})/)[0].replace('GMT', 'UTC') + ' ' +
 </script>
 <script>
     window.statsSource = new EventSource("/api/live_stats");
-    $(function () {
-        statsSource.addEventListener('message', function (e) {
-            if (document.hidden) return;
-
-            var stats = JSON.parse(e.data);
-            for (var pool in stats.pools) {
-                $('#statsMiners' + pool).text(stats.pools[pool].minerCount);
-                $('#statsWorkers' + pool).text(stats.pools[pool].workerCount);
-                $('#statsHashrate' + pool).text(stats.pools[pool].hashrateString);
-                $('#statsHashrateAvg' + pool).text(getReadableHashRateString(calculateAverageHashrate(pool)));
-                $('#statsLuckDays' + pool).text(getReadableLuckTime(stats.pools[pool].luckDays));
-                $('#statsValidBlocks' + pool).text(stats.pools[pool].poolStats.validBlocks);
-                $('#statsTotalPaid' + pool).text((parseFloat(stats.pools[pool].poolStats.totalPaid)).toFixed(8));
-                $('#statsNetworkBlocks' + pool).text(stats.pools[pool].poolStats.networkBlocks);
-                $('#statsNetworkDiff' + pool).text(stats.pools[pool].poolStats.networkDiff);
-                $('#statsnetworkHash' + pool).text(getReadableHashRateString(stats.pools[pool].poolStats.networkHash));
-                $('#statsNetworkConnections' + pool).text(stats.pools[pool].poolStats.networkConnections);
-                $('#statsHashPercent' + pool).text((stats.pools[pool].hashrate / stats.pools[pool].poolStats.networkHash * 100).toFixed(5));
+$(function () {
+    statsSource.addEventListener('message', function (e) {
+        if (document.hidden) return;
+        var stats = JSON.parse(e.data);
+        for (var pool in stats.pools) {
+            $('#statsMiners' + pool).text(stats.pools[pool].minerCount);
+            $('#statsWorkers' + pool).text(stats.pools[pool].workerCount);
+            $('#statsHashrate' + pool).text(stats.pools[pool].hashrateString);
+            $('#statsHashrateAvg' + pool).text(getReadableHashRateString(calculateAverageHashrate(pool)));
+            $('#statsLuckDays' + pool).text(getReadableLuckTime(stats.pools[pool].luckDays));
+            $('#statsTotalPaid' + pool).text((parseFloat(stats.pools[pool].poolStats.totalPaid)).toFixed(8));
+            $('#statsNetworkBlocks' + pool).text(stats.pools[pool].poolStats.networkBlocks);
+            $('#statsNetworkDiff' + pool).text(stats.pools[pool].poolStats.networkDiff);
+            $('#statsnetworkHash' + pool).text(getReadableHashRateString(stats.pools[pool].poolStats.networkHash));
+            $('#statsNetworkConnections' + pool).text(stats.pools[pool].poolStats.networkConnections);
+            $('#statsHashPercent' + pool).text((stats.pools[pool].hashrate / stats.pools[pool].poolStats.networkHash * 100).toFixed(5));
+            
+            // MOVE THIS INSIDE THE LOOP
+            // Update total blocks (pool + solo) - blocks already contains the total
+            var totalBlocks = stats.pools[pool].blocks.pending + stats.pools[pool].blocks.confirmed;
+            $('#statsValidBlocks' + pool).text(totalBlocks);
+            
+            // Update separate pool and solo counts
+            var poolBlocks = stats.pools[pool].poolBlocks.pending + stats.pools[pool].poolBlocks.confirmed;
+            var soloBlocks = (stats.pools[pool].soloBlocks.pending || 0) + (stats.pools[pool].soloBlocks.confirmed || 0);
+            $('#statsPoolBlocks' + pool).text(poolBlocks);
+            if (soloBlocks > 0) {
+                $('#statsSoloBlocks' + pool).text(soloBlocks);
             }
-        });
+        }
     });
+});
     function getReadableNetworkHashRateString(hashrate) {
         hashrate = (hashrate * 1000000);
         if (hashrate < 1000000)

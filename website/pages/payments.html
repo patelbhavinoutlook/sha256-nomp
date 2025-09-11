@@ -2,7 +2,19 @@
     #topPool {
         padding: 18px 18px 0px 18px;
     }
+	
+	#menu{
+        background-color: #3d3d3d;
+        min-width: 170px;
+    }
 
+    #menu > .menuHeader{
+        color: #e3f7ff;
+        border-bottom: 1px solid #7f878b;
+        font-size: 1.2em;
+        padding: 16px 16px 4px 15px;
+    }
+	
     .poolWrapper {
         background: #ddd;
         border: solid 1px #c7c7c7;
@@ -10,19 +22,24 @@
         padding: 5px;
         margin-bottom: 18px;
     }
-
     .poolLabel {
         font-size: 1.2em;
         text-align: center;
         padding: 4px;
     }
-
     table {
         background: #ddd;
         width: 100%;
+        border-collapse: collapse;
     }
-    table th{
+    table th {
         background: #c7c7c7;
+        padding: 8px;
+        text-align: left;
+    }
+    table td {
+        padding: 6px 8px;
+        border-bottom: 1px solid #e0e0e0;
     }
     .block-cell {
         max-width: 400px;
@@ -30,61 +47,173 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .payment-info {
+        font-size: 0.9em;
+        color: #666;
+        text-align: center;
+        padding: 10px;
+        background: #f0f0f0;
+        margin: 10px 0;
+        border-radius: 3px;
+    }
+    .no-payments {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+        font-style: italic;
+        background: #f9f9f9;
+        border-radius: 3px;
+    }
+    .address-truncated {
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+    .payment-amount {
+        color: #d9534f;
+        font-weight: bold;
+    }
+    .tx-link {
+        color: #337ab7;
+        text-decoration: none;
+    }
+    .tx-link:hover {
+        text-decoration: underline;
+    }
+    .solo-badge {
+        color: #f0ad4e;
+        font-weight: bold;
+        font-size: 0.85em;
+        padding: 2px 4px;
+        background: #fff3cd;
+        border-radius: 3px;
+        margin-right: 5px;
+    }
+
 </style>
+
 {{ function capitalizeFirstLetter(t){return t.charAt(0).toUpperCase()+t.slice(1)} }}
 {{ function readableDate(a) {
+  if (!a) return 'N/A';
   var d = new Date(parseInt(a));
   return d.toLocaleString();
 } }}
+{{ function truncateAddress(addr) {
+  if (!addr) return 'N/A';
+  if (addr.length <= 12) return addr;
+  return addr.substr(0, 6) + '...' + addr.substr(-4);
+} }}
+
 {{ for(var pool in it.stats.pools) { }}
+{{ var poolData = it.stats.pools[pool]; }}
 <div id="topPool">
     <div class="poolWrapper">
         <div class="poolLabel">
-            {{=capitalizeFirstLetter(it.stats.pools[pool].name)}} Payments &nbsp;&nbsp;
+            {{=capitalizeFirstLetter(poolData.name)}} Payments 
+            {{ if (poolData.paymentMode === 'prop') { }}
+                <span style="color: #5cb85c; font-size: 0.8em;">[PROP Mode]</span>
+            {{ } else if (poolData.paymentMode === 'pplnt') { }}
+                <span style="color: #5bc0de; font-size: 0.8em;">[PPLNT Mode]</span>
+            {{ } }}
+            &nbsp;&nbsp;
             <span style="float:right;">
                 <small>
-                    <i class="fas fa-cubes fa-fw"></i> <span
-                        id="statsValidBlocks{{=pool}}">{{=it.stats.pools[pool].poolStats.validBlocks}}</span> Blocks
+                    <i class="fas fa-cubes fa-fw"></i> 
+                    <span id="statsValidBlocks{{=pool}}">{{=poolData.poolStats.validBlocks || 0}}</span> Blocks
                     &nbsp;&nbsp;
-                    <i class="fas fa-money-bill fa-fw"></i> Paid: <span
-                        id="statsTotalPaid{{=pool}}">{{=(parseFloat(it.stats.pools[pool].poolStats.totalPaid)).toFixed(8)}}</span>
-                    {{=it.stats.pools[pool].symbol}}
+                    <i class="fas fa-money-bill fa-fw"></i> Total Paid: 
+                    <span id="statsTotalPaid{{=pool}}">{{=(parseFloat(poolData.poolStats.totalPaid || 0)).toFixed(8)}}</span>
+                    {{=poolData.symbol}}
                 </small>&nbsp;&nbsp;
+            </span>
         </div>
+        
+        {{ var payments = poolData.displayPayments || poolData.payments || []; }}
+        {{ var totalPayments = poolData.payments ? poolData.payments.length : 0; }}
+        
+        {{ if (payments && payments.length > 0) { }}
+        
+        <div class="payment-info">
+            <strong>Showing {{=payments.length}} most recent payments</strong>
+            {{ if (totalPayments > 25) { }}
+            (Total: {{=totalPayments}} payments)
+            {{ } }}
+            {{ if (poolData.soloMining) { }}
+            <br><small>Solo mining enabled with {{=poolData.soloFee || 0}}% fee</small>
+            {{ } }}
+        </div>
+        
         <div class="poolMinerTable">
             <table class="pure-table pure-table-horizontal">
                 <thead>
                     <tr>
-                        <th>Blocks</th>
                         <th>Time</th>
+                        <th>Type</th>
+                        <th>Blocks</th>
                         <th>Miners</th>
                         <th>Shares</th>
-                        <th>Payment Amount</th>
-                        <th>Total Payment Amount</th>
+                        <th>Total Amount</th>
+                        <th>TX</th>
                     </tr>
                 </thead>
-                {{ for(var p in it.stats.pools[pool].payments) { }}
-                <tr class="pure-table-odd">
-                    <td class="block-cell">
-                        {{ if (it.poolsConfigs[pool].coin.explorer && it.poolsConfigs[pool].coin.explorer.txURL) { }}
-                        <a href="{{=it.poolsConfigs[pool].coin.explorer.txURL + it.stats.pools[pool].payments[p].txid}}"
-                            title="View transaction" target="_blank">{{=it.stats.pools[pool].payments[p].blocks}}</a>
+                <tbody>
+                {{ for(var p = 0; p < payments.length && p < 25; p++) { }}
+                {{ var payment = payments[p]; }}
+                <tr class="{{= p % 2 === 0 ? 'pure-table-even' : 'pure-table-odd' }}">
+                    <td>{{=readableDate(payment.time)}}</td>
+                    <td>
+                        {{ if (payment.isSolo) { }}
+                            <span class="solo-badge">SOLO</span>
                         {{ } else { }}
-                        {{=it.stats.pools[pool].payments[p].blocks}}
+                            <span style="color: #5cb85c; font-weight: bold;">POOL</span>
                         {{ } }}
                     </td>
-                    <td>{{=readableDate(it.stats.pools[pool].payments[p].time)}}</td>
-                    <td>{{=it.stats.pools[pool].payments[p].miners}}</td>
-                    <td>{{=Math.round(it.stats.pools[pool].payments[p].shares)}}</td>
-                    <td>{{ for(var a in it.stats.pools[pool].payments[p].amounts){ }}
-                        {{=a.substr(0,4)+"****"+a.substr(30)}}：<a
-                            style='color:red;'>{{=it.stats.pools[pool].payments[p].amounts[a]}} </a>
-                        {{=it.stats.pools[pool].symbol}}<br>{{ } }}</td>
-                    <td>{{=it.stats.pools[pool].payments[p].paid}} {{=it.stats.pools[pool].symbol}}</td>
+                    <td class="block-cell">
+                        {{=payment.blocks || 'N/A'}}
+                    </td>
+                    <td>{{=payment.miners || 0}}</td>
+                    <td>{{=payment.shares ? Math.round(payment.shares) : 0}}</td>
+                    <td>
+                        <span class="payment-amount">
+                            {{=parseFloat(payment.paid || 0).toFixed(8)}} {{=poolData.symbol}}
+                        </span>
+                    </td>
+                    <td>
+                        {{ if (payment.txid) { }}
+                            {{ if (it.poolsConfigs[pool] && it.poolsConfigs[pool].coin.explorer && it.poolsConfigs[pool].coin.explorer.txURL) { }}
+                            <a href="{{=it.poolsConfigs[pool].coin.explorer.txURL + payment.txid}}"
+                                title="View transaction" target="_blank" class="tx-link">
+                                <i class="fas fa-external-link-alt"></i> View
+                            </a>
+                            {{ } else { }}
+                            <span class="address-truncated" title="{{=payment.txid}}">
+                                {{=truncateAddress(payment.txid)}}
+                            </span>
+                            {{ } }}
+                        {{ } else { }}
+                        <span style="color: #999;">Pending</span>
+                        {{ } }}
+                    </td>
                 </tr>
                 {{ } }}
+                </tbody>
             </table>
+            
+            {{ if (totalPayments > 25) { }}
+            <div style="text-align: center; padding: 10px; color: #666; font-size: 0.9em;">
+                Showing 25 of {{=totalPayments}} total payments
+            </div>
+            {{ } }}
         </div>
+        
+        {{ } else { }}
+        <div class="no-payments">
+            <i class="fas fa-info-circle" style="font-size: 2em; color: #5bc0de;"></i>
+            <br><br>
+            No payments have been processed yet.
+            <br><small>Payments will appear here once blocks are found and confirmed.</small>
+        </div>
+        {{ } }}
+        
     </div>
 </div>
 {{ } }}

@@ -17,11 +17,15 @@ module.exports = function(logger){
     var pools = {};
 
     var proxySwitch = {};
+    
+    // Store worker passwords for solo detection
+    var workerPasswords = {};
 
     var redisClient = redis.createClient(portalConfig.redis.port, portalConfig.redis.host);
     if (portalConfig.redis.password) {
         redisClient.auth(portalConfig.redis.password);
     }
+    
     //Handle messages from master process sent via IPC
     process.on('message', function(message) {
         switch(message.type){
@@ -131,84 +135,134 @@ module.exports = function(logger){
         else{
 
             var shareProcessor = new ShareProcessor(logger, poolOptions);
+            
+            handlers.auth = function (port, workerName, password, authCallback) {
+                const [wallet, worker] = (workerName || '').split('.', 2);
 
-            handlers.auth = function(port, workerName, password, authCallback){
-                if (poolOptions.validateWorkerUsername !== true)
-                    authCallback(true);
-                else {
-                        pool.daemon.cmd('validateaddress', [String(workerName).split(".")[0]], function (results) {
-                            var isValid = results.filter(function (r) {
-                                if (r.response)
-                                    return r.response.isvalid;
-                                return false;
-                            }).length > 0;
-                            authCallback(isValid);
-                        });
+                // Common SHA256 wallet formats (Bitcoin-style)
+                const isLegacy = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(wallet); // Legacy P2PKH or P2SH
+
+                // Bech32/Bech32m for your coins: bc1 (Bitcoin), bs1 (BitcoinSilver), myt1 (Mytherra)
+                const isBech32 = /^(bc1|bs1|myt1)[ac-hj-np-z02-9]{11,71}$/.test(wallet);
+
+                // If validation is disabled, accept all
+                if (poolOptions.validateWorkerUsername !== true) {
+                    return authCallback(true);
+                }
+
+                // Accept known valid formats without daemon check
+                if (isLegacy || isBech32) {
+                    return authCallback(true);
+                }
+
+                // Fallback: validate via coin daemon
+                pool.daemon.cmd('validateaddress', [wallet], function (results) {
+                    const isValid = results.some(r => r.response && r.response.isvalid);
+
+                    if (!isValid) {
+                        console.warn(`Rejected wallet: ${wallet}`);
                     }
+
+                    authCallback(isValid);
+                });
             };
 
             handlers.share = function(isValidShare, isValidBlock, data){
                 shareProcessor.handleShare(isValidShare, isValidBlock, data);
             };
         }
+        
+        
+        var authorizeFN = function(ip, port, workerName, password, callback) {
+            logger.debug(logSystem, logComponent, logSubCat, `[AUTH] Incoming auth request from ${ip} for ${workerName}`);
 
-        var authorizeFN = function (ip, port, workerName, password, callback) {
-            handlers.auth(port, workerName, password, function(authorized){
+            // Store password for this worker to use in share detection
+            if (password) {
+                workerPasswords[workerName] = password;
+            }
 
-                var authString = authorized ? 'Authorized' : 'Unauthorized ';
+            handlers.auth(port, workerName, password, function(authorized) {
+                var authString = authorized ? 'Authorized' : 'Unauthorized';
+                logger.debug(logSystem, logComponent, logSubCat, `[AUTH] ${authString} ${workerName}:${password} [${ip}]`);
 
-                logger.debug(logSystem, logComponent, logSubCat, authString + ' ' + workerName + ':' + password + ' [' + ip + ']');
                 callback({
                     error: null,
                     authorized: authorized,
-                    disconnect: false
+                    disconnect: false // Optional: force disconnect if unauthorized
                 });
             });
         };
 
-
         var pool = Stratum.createPool(poolOptions, authorizeFN, logger);
+        
         pool.on('share', function(isValidShare, isValidBlock, data){
-		
-			if(data.worker != undefined)
-				data.worker = data.worker.replace(/:/g,"-")           
+            // Clean up worker name
+            if(data.worker != undefined)
+                data.worker = data.worker.replace(/:/g,"-");
+            
+            // DETECT SOLO MINING FROM STORED PASSWORD
+            var isSoloMining = false;
+            
+            // Get password from our stored map
+            var password = workerPasswords[data.worker] || '';
+            
+            if (password) {
+                var passwordLower = password.toLowerCase();
+                if (passwordLower === 'solo' || 
+                    passwordLower.includes('m=solo') || 
+                    passwordLower.includes('solo=true')) {
+                    isSoloMining = true;
+                }
+            }
+            
+            // ADD SOLO FLAG TO DATA BEFORE PASSING TO HANDLER
+            data.isSoloMining = isSoloMining;
+            
+            // Log for debugging
+            if (data.blockHash) {
+                console.log('[DEBUG] Block submission:', isValidBlock ? 'VALID' : 'INVALID', 
+                            isSoloMining ? '[SOLO]' : '[POOL]', 'by', data.worker);
+            }
             
             var shareData = JSON.stringify(data);
-
-            if (data.blockHash && !isValidBlock)
-                logger.debug(logSystem, logComponent, logSubCat, 'We thought a block was found but it was rejected by the daemon, share data: ' + shareData);
-
-            else if (isValidBlock)
-                logger.debug(logSystem, logComponent, logSubCat, 'Block found: ' + data.blockHash + ' by ' + data.worker);
+            
+            if (data.blockHash && !isValidBlock) {
+                logger.debug(logSystem, logComponent, logSubCat, 
+                    'We thought a block was found but it was rejected by the daemon, share data: ' + shareData);
+            } else if (isValidBlock) {
+                var blockType = isSoloMining ? '[SOLO BLOCK]' : '[POOL BLOCK]';
+                logger.debug(logSystem, logComponent, logSubCat, 
+                    blockType + ' Block found: ' + data.blockHash + ' by ' + data.worker);
+            }
 
             if (isValidShare) {
                 if(data.shareDiff > 1000000000) {
-                    logger.debug(logSystem, logComponent, logSubCat, 'Share was found with diff higher than 1.000.000.000!');
-                //} else if(data.shareDiff > 1000000) {
-                //    logger.debug(logSystem, logComponent, logSubCat, 'Share was found with diff higher than 1.000.000!');
+                    logger.debug(logSystem, logComponent, logSubCat, 
+                        'Share was found with diff higher than 1.000.000.000!');
                 }
-                logger.debug(logSystem, logComponent, logSubCat, 'Share accepted at diff ' + data.difficulty + '/' + data.shareDiff + ' by ' + data.worker + ' [' + data.ip + ']' );
+                var shareType = isSoloMining ? '[SOLO]' : '[POOL]';
+                logger.debug(logSystem, logComponent, logSubCat, 
+                    shareType + ' Share accepted at diff ' + data.difficulty + '/' + 
+                    data.shareDiff + ' by ' + data.worker);
             } else if (!isValidShare) {
                 logger.debug(logSystem, logComponent, logSubCat, 'Share rejected: ' + shareData);
             }
 
-            // handle the share
+            // Pass to share handler with solo flag included
             handlers.share(isValidShare, isValidBlock, data);
 
-            // send to master for pplnt time tracking
-            process.send({type: 'shareTrack', thread:(parseInt(forkId)+1), coin:poolOptions.coin.name, isValidShare:isValidShare, isValidBlock:isValidBlock, data:data});
-
-        }).on('difficultyUpdate', function(workerName, diff){
-            logger.debug(logSystem, logComponent, logSubCat, 'Difficulty update to diff ' + diff + ' workerName=' + JSON.stringify(workerName));
-            handlers.diff(workerName, diff);
-        }).on('log', function(severity, text) {
-            logger[severity](logSystem, logComponent, logSubCat, text);
-        }).on('banIP', function(ip, worker){
-            process.send({type: 'banIP', ip: ip});
-        }).on('started', function(){
-            _this.setDifficultyForProxyPort(pool, poolOptions.coin.name, poolOptions.coin.algorithm);
+            // Send to master for pplnt time tracking
+            process.send({
+                type: 'shareTrack', 
+                thread: (parseInt(forkId)+1), 
+                coin: poolOptions.coin.name, 
+                isValidShare: isValidShare, 
+                isValidBlock: isValidBlock, 
+                isSoloMining: isSoloMining,
+                data: data
+            });
         });
-
+        
         pool.start();
         pools[poolOptions.coin.name] = pool;
     });
@@ -227,12 +281,6 @@ module.exports = function(logger){
         // on the last pool it was using when reloaded or restarted
         //
         logger.debug(logSystem, logComponent, logSubCat, 'Loading last proxy state from redis');
-
-
-
-        /*redisClient.on('error', function(err){
-            logger.debug(logSystem, logComponent, logSubCat, 'Pool configuration failed: ' + err);
-        });*/
 
         redisClient.hgetall("proxyState", function(error, obj) {
             if (!error && obj) {
