@@ -42,9 +42,7 @@ module.exports = function (logger) {
         'admin.html': 'admin',
         'mining_key.html': 'mining_key',
         'miner_stats.html': 'miner_stats',
-        'payments.html': 'payments',
-		'swap.html': 'swap',
-		'swap_mytherra.html': 'swap_mytherra'
+        'payments.html': 'payments'
     };
 
     var pageTemplates = {};
@@ -349,62 +347,6 @@ var buildUpdatedWebsite = function () {
 	app.get('/api/:method', function (req, res, next) {
         portalApi.handleApiRequest(req, res, next);
     });
-	
-	app.get('/2swap_info', async (req, res) => {
-	  const coin = req.query.coin || 'bitcoin';
-	  const url = `https://bitcoinsilver.top/api/swap/?action=data&coin=${coin}`;
-	  const response = await fetch(url);
-	  const data = await response.json();
-	  res.json(data);
-	});
-	
-	app.get('/2swap_check_id', async (req, res) => {
-	  const id = req.query.id || '13';
-      const url = `https://bitcoinsilver.top/api/swap/?action=swap&id=${encodeURIComponent(id)}`;
-	  const response = await fetch(url);
-	  const data = await response.json();
-	  res.json(data);
-	});
-
-	app.post('/2swap_query', async (req, res) => {
-	  try {
-		const { from, to, amount, action = 'data' } = req.body;
-
-		const response = await fetch(`https://bitcoinsilver.top/api/swap/?action=${action}`, {
-		  method: 'POST',
-		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ from, to, amount })
-		});
-
-		if (!response.ok) throw new Error(`API responded with status ${response.status}`);
-
-		const data = await response.json();
-		res.json(data);
-	  } catch (error) {
-		console.error('Error fetching swap data:', error);
-		res.status(500).json({ error: 'Failed to fetch swap data' });
-	  }
-	});
-	
-	app.post('/2swap_swap', async (req, res) => {
-	  try {
-		const { from, to, amount, address, action = 'swap' } = req.body;
-
-		const response = await fetch(`https://bitcoinsilver.top/api/swap/?action=${action}`, {
-		  method: 'POST',
-		  headers: { 'Content-Type': 'application/json' },
-		  body: JSON.stringify({ from, to, amount, address })
-		});
-
-		//if (!response.ok) throw new Error(`API responded with status ${response.status}`);
-
-		const data = await response.json();
-		res.json(data);
-	  } catch (error) {
-		console.error('Error fetching swap data:', error);
-		res.status(500).json({ error: 'Failed to fetch swap data' });
-	  }
-	});
 	
     app.post('/api/admin/:method', function (req, res, next) {
         if (portalConfig.website
