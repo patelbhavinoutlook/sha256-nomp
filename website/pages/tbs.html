@@ -41,6 +41,64 @@
     table th{
         background: #c7c7c7;
     }
+		    /* Mobile responsive tables */
+    @media screen and (max-width: 768px) {
+        /* Make tables scrollable on mobile */
+        .poolMinerTable {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        table {
+            min-width: 500px; /* Minimum width to maintain readability */
+        }
+        
+        /* Reduce padding on mobile */
+        #topPool {
+            padding: 10px;
+        }
+        
+        /* Stack miner lookup on mobile */
+        .poolLabel span {
+            float: none !important;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        /* Smaller font sizes on mobile */
+        .poolLabel small {
+            font-size: 0.85em;
+            display: block;
+            line-height: 1.8;
+        }
+        
+        /* Make input and button full width on mobile */
+        .input-lg, .btn-lg {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        /* Hide less important columns on mobile */
+        @media screen and (max-width: 480px) {
+            table th:nth-child(3),
+            table td:nth-child(3) {
+                display: none; /* Hide efficiency column on very small screens */
+            }
+        }
+    }
+    
+    /* Responsive text */
+    @media screen and (max-width: 480px) {
+        .poolLabel {
+            font-size: 1em;
+        }
+        
+        /* Break long addresses */
+        table td:first-child {
+            word-break: break-all;
+            max-width: 150px;
+        }
+    }
 
 </style>
 <div id="topPool">
@@ -55,7 +113,7 @@
                     <tr>
                         <th>Pool</th>
                         <th>Algo</th>
-                        <th>Workers</th>
+                        <th>Miners</th>
                         <th>Valid Shares</th>
                         <th>Invalid Shares</th>
                         <th>Total Blocks</th>
@@ -69,7 +127,7 @@
                 <tr class="pure-table-odd">
                     <td>{{=it.stats.pools[pool].name}}</td>
                     <td>{{=it.stats.pools[pool].algorithm}}</td>
-                    <td>{{=Object.keys(it.stats.pools[pool].workers).length}}</td>
+                    <td>{{=it.stats.pools[pool].minerCount || 0}}</td>
                     <td>{{=it.stats.pools[pool].poolStats.validShares}}</td>
                     <td>{{=it.stats.pools[pool].poolStats.invalidShares}}</td>
                     <td>{{=it.stats.pools[pool].poolStats.validBlocks}}</td>

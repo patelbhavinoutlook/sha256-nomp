@@ -543,7 +543,9 @@ this.getBlocks = function (cback) {
 							symbol: poolConfigs[coinName].coin.symbol.toUpperCase(),
 							algorithm: poolConfigs[coinName].coin.algorithm,
 							blockTime: poolConfigs[coinName].coin.blockTime,
-							poolType: (poolConfigs[coinName]?.paymentProcessing?.soloMining === true) ? "prop+solo" : "prop",
+							poolType: (poolConfigs[coinName]?.paymentProcessing?.soloMining === true) ? "PROP + SOLO" : "PROP",
+							payout_system: "PROP / SOLO",
+							payout_systems: "[PROP,SOLO]",
 							soloMining: poolConfigs[coinName]?.paymentProcessing?.soloMining || false,
 							paymentMode: poolConfigs[coinName]?.paymentProcessing?.paymentMode || 0,
 							minimumPayment: poolConfigs[coinName]?.paymentProcessing?.minimumPayment || 0,
@@ -551,8 +553,13 @@ this.getBlocks = function (cback) {
 							soloFee: poolConfigs[coinName]?.paymentProcessing?.soloFee || 0,
 							hashrates: replies[i + 1],
 							poolStats: {
-								validShares: replies[i + 2] ? (replies[i + 2].validShares || 0) : 0,
+								blockheight: replies[i + 2] ? (replies[i + 2].networkBlocks || 0) : 0,	// Current blockchain height
+								lastblock: blocks.lastblock || null,        							// Last found block number
+								lastblock_time: blocks.lastblock_time || null, 							// Last block timestamp	
+								//lastBlock_time: Math.floor(blocks.lastblock_time / 1000) || null,  // Seconds
+								timesincelast: blocks.lastblock_time ? Math.floor(Date.now() / 1000) - Math.floor(blocks.lastblock_time / 1000) : null,  // Time since last block in seconds							
 								validBlocks: replies[i + 2] ? (replies[i + 2].validBlocks || 0) : 0,
+								validShares: replies[i + 2] ? (replies[i + 2].validShares || 0) : 0,
 								invalidShares: replies[i + 2] ? (replies[i + 2].invalidShares || 0) : 0,
 								totalPaid: replies[i + 2] ? (replies[i + 2].totalPaid || 0) : 0,
 								networkBlocks: replies[i + 2] ? (replies[i + 2].networkBlocks || 0) : 0,
@@ -1046,9 +1053,8 @@ this.getBlocks = function (cback) {
 					name: coinStats.name,
 					symbol: coinStats.symbol,
 					algorithm: coinStats.algorithm,
-					blockTime: coinStats.blockTime,
 					poolType: coinStats.poolType,
-					soloMining: coinStats.soloMining,
+					soloMining: coinStats.soloMining,					
 					paymentMode: coinStats.paymentMode,
 					minimumPayment: coinStats.minimumPayment,
 					poolFee: coinStats.poolFee,
@@ -1061,6 +1067,15 @@ this.getBlocks = function (cback) {
 					poolWorkerCount: coinStats.poolWorkerCount,
 					soloMinerCount: coinStats.soloMinerCount,
 					soloWorkerCount: coinStats.soloWorkerCount,
+					
+					blocktime: coinStats.blockTime,
+					blockheight: coinStats.poolStats.networkBlocks || 0,  // Current blockchain height
+					lastblock: coinStats.blocks.lastblock || null,        // Last found block number
+					lastblock_time: coinStats.blocks.lastblock_time || null, // Last block timestamp
+					timesincelast: coinStats.poolStats.timesincelast || null,
+					
+					payout_system: coinStats.payout_system,
+					payout_systems: coinStats.payout_systems,
 					
 					// Hashrates grouped together
 					hashrate: coinStats.hashrate,
@@ -1097,6 +1112,7 @@ this.getBlocks = function (cback) {
 					
 					// Current round data
 					currentRoundShares: coinStats.currentRoundShares,
+					currentRoundSharesSolo: coinStats.currentRoundSharesSolo,
 					currentRoundTimes: coinStats.currentRoundTimes,
 					maxRoundTime: coinStats.maxRoundTime,
 					maxRoundTimeString: coinStats.maxRoundTimeString,
