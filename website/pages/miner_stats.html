@@ -9,7 +9,7 @@
     }
 
     .chartWrapper {
-        background: #eee;
+        background: #ddd;
         border: solid 1px #c7c7c7;
         border-radius: 5px;
         padding: 5px;
@@ -22,98 +22,216 @@
         padding: 4px;
     }
 
-    #boxesWorkers {
+    .workerSection {
+        margin-bottom: 20px;
+    }
+
+    .sectionHeader {
+        font-size: 1.2em;
+        font-weight: bold;
+        padding: 10px 15px;
+        margin: 10px 0;
+        background: #c7c7c7;
+        color: #333;
+        border-radius: 5px;
+    }
+
+    .sectionHeader.solo {
+        background: #f0ad4e;
+        color: white;
+        border-top: 2px solid #f0ad4e;
+        margin-top: 20px;
+    }
+
+    #boxesWorkers, .workersContainer {
+        display: flex;
+        flex-wrap: wrap;
         margin: 0 9px;
     }
 
-    #boxesWorkers>div {
-        display: flex;
+    .boxStats {
+        flex: 1 1 300px;
+        margin: 9px;
+        min-width: 260px;
+        max-width: 400px;
+        padding: 10px;
+        border-radius: 5px;
+        background: #ddd;
+        border: solid 1px #c7c7c7;
     }
 
-    #boxesWorkers>div>div {
-        flex: 1 1 auto;
-        margin: 0 9px 18px 9px;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
+    .boxStats.solo {
+        border: 2px solid #f0ad4e;
     }
 
     .boxLowerHeader {
         font-size: 1.3em;
         margin: 0 0 5px 10px;
+        font-weight: bold;
     }
 
-    #boxStatsLeft {
-        color: black;
-        background-color: #cccccc;
-    }
-
-    #boxStatsRight {
-        color: black;
-        background-color: #cccccc;
-    }
-
-    .boxStats {
+    .soloLabel {
+        display: inline-block;
+        background: #f0ad4e;
         color: white;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 0.8em;
+        margin-left: 5px;
+        font-weight: bold;
     }
 
     .boxStatsList {
-        display: flex;
-        flex-flow: row wrap;
-        justify-content: space-around;
-        opacity: 0.77;
+        opacity: 0.9;
         margin-bottom: 5px;
-        flex: 1 1 auto;
-        align-content: center;
     }
 
-    .boxStatsList i.fa {
+    .boxStatsList i.fa, .boxStatsList i.fas {
         height: 15px;
-        width: 33px;
+        width: 20px;
         text-align: center;
+        margin-right: 5px;
     }
 
     .boxStatsList>div {
-        padding: 5px 20px;
+        padding: 3px 10px;
     }
 
-    .boxStatsList>div>div {
-        padding: 3px;
+    /* Match the table background style */
+    #poolWorkersSection, #soloWorkersSection {
+        background: transparent;
     }
 
+    .minerType {
+        font-size: 0.8em;
+        padding: 2px 5px;
+        border-radius: 3px;
+        margin-left: 5px;
+        display: inline-block;
+    }
+
+    .poolMiner {
+        background: #5cb85c;
+        color: white;
+    }
+
+    .soloMiner {
+        background: #f0ad4e;
+        color: white;
+    }
 </style>
 
 <div id="topCharts">
     <div class="chartWrapper">
         <div class="chartLabel">
-            <!--<div style="float:left; padding-right: 18px;"><i class="fa fa-users"></i><span id="statsWorkers">...</span></div>-->
             <div style="float:left; margin-right: 9px;">{{=String(it.stats.address).split(".")[0]}}</div>
-            <div style="float:right; padding-left: 18px;"><small><i class="fas fa-tachometer fa-fw"></i> <span
-                        id="statsHashrateAvg">...</span> (Avg)</small></div>
-            <div style="float:right; padding-left: 18px;"><small><i class="fas fa-tachometer fa-fw"></i> <span
-                        id="statsHashrate">...</span> (Now)</small></div>
-            <div style="float:right; padding-left: 18px;"><small><i class="fas fa-gavel fa-fw"></i> Luck <span
-                        id="statsLuckDays">...</span></small></div>
+            <div style="float:right; padding-left: 18px;">
+                <small><i class="fas fa-tachometer-alt fa-fw"></i> <span id="statsHashrateAvg">...</span> (Avg)</small>
+            </div>
+            <div style="float:right; padding-left: 18px;">
+                <small><i class="fas fa-tachometer-alt fa-fw"></i> <span id="statsHashrate">...</span> (Now)</small>
+            </div>
+            <div style="float:right; padding-left: 18px;">
+                <small><i class="fas fa-gavel fa-fw"></i> Luck <span id="statsLuckDays">...</span></small>
+            </div>
         </div>
         <div class="chartHolder"><svg id="workerHashrate"></svg></div>
         <div>
-            <div style="float:right; padding-top: 9px; padding-right: 18px;"><i class="fas fa-chart-bar fa-fw"></i>
-                Shares: <span id="statsTotalShares">...</span></div>
-            <div style="float:left; padding-top: 9px; padding-left: 18px; padding-right: 18px;"><i
-                    class="fas fa-money-bill-alt fa-fw"></i> Immature: <span id="statsTotalImmature">...</span> </div>
-            <div style="float:left; padding-top: 9px; padding-left: 18px; padding-right: 18px;"><i
-                    class="fas fa-money-bill-alt fa-fw"></i> Bal: <span id="statsTotalBal">...</span> </div>
-            <div style="padding-top: 9px; padding-left: 18px;"><i class="fas fa-money-bill-alt fa-fw"></i> Paid: <span
-                    id="statsTotalPaid">...</span> </div>
+            <div style="float:right; padding-top: 9px; padding-right: 18px;">
+                <i class="fas fa-chart-bar fa-fw"></i> Shares: <span id="statsTotalShares">...</span>
+            </div>
+            <div style="float:left; padding-top: 9px; padding-left: 18px; padding-right: 18px;">
+                <i class="fas fa-money-bill-alt fa-fw"></i> Immature: <span id="statsTotalImmature">...</span>
+            </div>
+            <div style="float:left; padding-top: 9px; padding-left: 18px; padding-right: 18px;">
+                <i class="fas fa-money-bill-alt fa-fw"></i> Bal: <span id="statsTotalBal">...</span>
+            </div>
+            <div style="padding-top: 9px; padding-left: 18px;">
+                <i class="fas fa-money-bill-alt fa-fw"></i> Paid: <span id="statsTotalPaid">...</span>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="boxesWorkers"> </div>
+<!-- Container for pool workers -->
+<div id="poolWorkersSection" class="workerSection" style="display:none;">
+    <div class="sectionHeader">Pool Workers</div>
+    <div id="boxesPoolWorkers" class="workersContainer"></div>
+</div>
+
+<!-- Container for solo workers -->
+<div id="soloWorkersSection" class="workerSection" style="display:none;">
+    <div class="sectionHeader solo">Solo Workers</div>
+    <div id="boxesSoloWorkers" class="workersContainer"></div>
+</div>
 
 <script>
     var _miner = "{{=String(it.stats.address || '').split('.')[0]}}";
     var _workerCount = 0;
+    
+    // Make functions available globally BEFORE loading miner_stats.js
+    window.getWorkerNameFromAddress = function(w) {
+        var worker = w;
+        if (w.split(".").length > 1) {
+            worker = w.split(".")[1];
+            if (worker == null || worker.length < 1) {
+                worker = "noname";
+            }
+        } else {
+            worker = "noname";
+        }
+        return worker;
+    };
+    
+    // Updated functions to handle both worker types
+    function addWorkerToDisplay(name, htmlSafeName, workerObj, isSolo) {
+        var htmlToAdd = "";
+        var soloClass = isSolo ? ' solo' : '';
+        var soloLabel = isSolo ? '<span class="soloLabel">SOLO</span>' : '';
+        
+        htmlToAdd = '<div class="boxStats' + soloClass + '" id="boxStats_' + htmlSafeName + '">';
+        htmlToAdd += '<div class="boxStatsList">';
+        htmlToAdd += '<div class="boxLowerHeader">' + name.replace(/[^\w\s]/gi, '') + soloLabel + '</div>';
+        htmlToAdd += '<div><i class="fas fa-tachometer-alt"></i> <span id="statsHashrate' + htmlSafeName + '">...</span> (Now)</div>';
+        htmlToAdd += '<div><i class="fas fa-tachometer-alt"></i> <span id="statsHashrateAvg' + htmlSafeName + '">...</span> (Avg)</div>';
+        htmlToAdd += '<div><i class="fas fa-unlock-alt"></i> <small>Diff:</small> <span id="statsDiff' + htmlSafeName + '">...</span></div>';
+        htmlToAdd += '<div><i class="fas fa-cog"></i> <small>Shares:</small> <span id="statsShares' + htmlSafeName + '">...</span></div>';
+        htmlToAdd += '<div><i class="fas fa-clock"></i> <small>Luck:</small> <span id="statsLuckDays' + htmlSafeName + '">...</span></div>';
+        htmlToAdd += '<div><i class="fas fa-money-bill-alt"></i> <small>Bal:</small> <span id="statsBalance' + htmlSafeName + '">...</span></div>';
+        htmlToAdd += '<div><i class="fas fa-money-bill-alt"></i> <small>Paid:</small> <span id="statsPaid' + htmlSafeName + '">...</span></div>';
+        htmlToAdd += '</div></div>';
+        
+        var targetContainer = isSolo ? "#boxesSoloWorkers" : "#boxesPoolWorkers";
+        var targetSection = isSolo ? "#soloWorkersSection" : "#poolWorkersSection";
+        
+        $(targetSection).show();
+        $(targetContainer).append(htmlToAdd);
+    }
+    
+function rebuildWorkerDisplay() {
+    $("#boxesPoolWorkers").html("");
+    $("#boxesSoloWorkers").html("");
+    $("#poolWorkersSection").hide();
+    $("#soloWorkersSection").hide();
+    
+    var i = 0;
+    
+    // Display workers - check isSolo flag for each
+    if (window.statData && window.statData.workers) {
+        for (var w in window.statData.workers) {
+            i++;
+            var worker = window.statData.workers[w];
+            var isSolo = worker.isSolo === true;
+            var htmlSafeWorkerName = (isSolo ? 'solo_' : '') + w.split('.').join('_').replace(/[^\w\s]/gi, '');
+            var saneWorkerName = getWorkerNameFromAddress(w);
+            addWorkerToDisplay(saneWorkerName, htmlSafeWorkerName, worker, isSolo);
+        }
+    }
+}
+    
+    // Make rebuildWorkerDisplay available globally
+    window.rebuildWorkerDisplay = rebuildWorkerDisplay;
+    window.addWorkerToDisplay = addWorkerToDisplay;
     
     // Wait for jQuery to be ready
     $(document).ready(function() {
@@ -122,19 +240,35 @@
         // Create EventSource connection
         window.statsSource = new EventSource("/api/live_stats");
         
+        var scriptLoaded = false;
+        
         window.statsSource.onopen = function(e) {
             console.log('Connected to live stats');
+            
+            // Load miner_stats.js only once when first connected
+            if (!scriptLoaded) {
+                scriptLoaded = true;
+                console.log('Loading miner_stats.js...');
+                var script = document.createElement('script');
+                script.src = '/static/miner_stats.js?v=' + Date.now();
+                document.querySelector('main').appendChild(script);
+            }
         };
         
         window.statsSource.onerror = function(e) {
             console.error('EventSource error:', e);
+            // Don't try to reconnect here, the browser handles it automatically
         };
         
-        // Load miner_stats.js after EventSource is created
+        // Fallback: load script after timeout if EventSource doesn't connect
         setTimeout(function() {
-            var script = document.createElement('script');
-            script.src = '/static/miner_stats.js?v=' + Date.now(); // Add cache buster
-            document.querySelector('main').appendChild(script);
-        }, 100);
+            if (!scriptLoaded) {
+                scriptLoaded = true;
+                console.log('Loading miner_stats.js via timeout fallback...');
+                var script = document.createElement('script');
+                script.src = '/static/miner_stats.js?v=' + Date.now();
+                document.querySelector('main').appendChild(script);
+            }
+        }, 1000);
     });
 </script>

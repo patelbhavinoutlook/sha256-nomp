@@ -281,119 +281,184 @@ this.getBlocks = function (cback) {
     };
 
 	this.getTotalSharesByAddress = function(address, cback) {
-	    var a = address.split(".")[0];
-        var client = redisClients[0].client,
-            coins = redisClients[0].coins,
-            shares = [];
+		var a = address.split(".")[0];
+		var client = redisClients[0].client,
+			coins = redisClients[0].coins,
+			shares = [];
 
-        var pindex = parseInt(0);
+		var pindex = parseInt(0);
 		var totalShares = parseFloat(0);
+		
 		async.each(_this.stats.pools, function(pool, pcb) {
-            pindex++;
+			pindex++;
 			var coin = String(_this.stats.pools[pool.name].name);
-			client.hscan(coin + ':shares:roundCurrent', 0, "match", a+"*", "count", 1000, function(error, result) {
-                if (error) {
-                    pcb(error);
-                    return;
-                }
-				var workerName="";
-				var shares = 0;
-				for (var i in result[1]) {
-					if (Math.abs(i % 2) != 1) {
-						workerName = String(result[1][i]);
-					} else {
-						shares += parseFloat(result[1][i]);
-					}
+			
+			// Get pool shares
+			client.hscan(coin + ':shares:roundCurrent', 0, "match", a+"*", "count", 1000, function(error, poolResult) {
+				if (error) {
+					pcb(error);
+					return;
 				}
-                if (shares>0) {
-                    totalShares = shares;
-                }
-                pcb();
+				
+				// Get solo shares
+				client.hscan(coin + ':shares:roundCurrent:solo', 0, "match", a+"*", "count", 1000, function(error, soloResult) {
+					if (error) {
+						pcb(error);
+						return;
+					}
+					
+					var workerShares = 0;
+					
+					// Process pool shares
+					for (var i in poolResult[1]) {
+						if (Math.abs(i % 2) == 1) {
+							workerShares += parseFloat(poolResult[1][i]);
+						}
+					}
+					
+					// Process solo shares
+					for (var i in soloResult[1]) {
+						if (Math.abs(i % 2) == 1) {
+							workerShares += parseFloat(soloResult[1][i]);
+						}
+					}
+					
+					if (workerShares > 0) {
+						totalShares += workerShares;
+					}
+					
+					pcb();
+				});
 			});
 		}, function(err) {
-            if (err) {
-                cback(0);
-                return;
-            }
-            if (totalShares > 0 || (pindex >= Object.keys(_this.stats.pools).length)) {
-                cback(totalShares);
-                return;
-            }
+			if (err) {
+				cback(0);
+				return;
+			}
+			cback(totalShares);
 		});
 	};
 
-    this.getBalanceByAddress = function(address, cback){
-
-	    var a = address.split(".")[0];
-
-        var client = redisClients[0].client,
-            coins = redisClients[0].coins,
-            balances = [];
+	this.getBalanceByAddress = function(address, cback){
+		var a = address.split(".")[0];
+		var client = redisClients[0].client,
+			coins = redisClients[0].coins,
+			balances = [];
 
 		var totalHeld = parseFloat(0);
 		var totalPaid = parseFloat(0);
-        var totalImmature = parseFloat(0);
+		var totalImmature = parseFloat(0);
 
 		async.each(_this.stats.pools, function(pool, pcb) {
 			var coin = String(_this.stats.pools[pool.name].name);
+			
 			// get all immature balances from address
 			client.hscan(coin + ':immature', 0, "match", a+"*", "count", 10000, function(error, pends) {
-                // get all balances from address
-                client.hscan(coin + ':balances', 0, "match", a+"*", "count", 10000, function(error, bals) {
-                    // get all payouts from address
-                    client.hscan(coin + ':payouts', 0, "match", a+"*", "count", 10000, function(error, pays) {
+				// get all balances from address
+				client.hscan(coin + ':balances', 0, "match", a+"*", "count", 10000, function(error, bals) {
+					// get all payouts from address (POOL)
+					client.hscan(coin + ':payouts', 0, "match", a+"*", "count", 10000, function(error, pays) {
+						// get all payouts from address (SOLO) - ADD THIS
+						client.hscan(coin + ':payouts:solo', 0, "match", a+"*", "count", 10000, function(error, soloPays) {
+							// Also get solo balances and immature
+							client.hscan(coin + ':balances:solo', 0, "match", a+"*", "count", 10000, function(error, soloBals) {
+								client.hscan(coin + ':immature:solo', 0, "match", a+"*", "count", 10000, function(error, soloPends) {
+									
+									var workerName = "";
+									var workers = {};
 
-                        var workerName = "";
-                        var balAmount = 0;
-                        var paidAmount = 0;
-                        var pendingAmount = 0;
+									// Process pool payouts
+									for (var i in pays[1]) {
+										if (Math.abs(i % 2) != 1) {
+											workerName = String(pays[1][i]);
+											workers[workerName] = (workers[workerName] || {});
+										} else {
+											var paidAmount = parseFloat(pays[1][i]);
+											workers[workerName].paid = coinsRound(paidAmount);
+											totalPaid += paidAmount;
+										}
+									}
+									
+									// Process solo payouts - ADD THIS
+									for (var i in soloPays[1]) {
+										if (Math.abs(i % 2) != 1) {
+											workerName = String(soloPays[1][i]);
+											workers[workerName] = (workers[workerName] || {});
+											workers[workerName].isSolo = true;
+										} else {
+											var paidAmount = parseFloat(soloPays[1][i]);
+											workers[workerName].paid = (workers[workerName].paid || 0) + coinsRound(paidAmount);
+											totalPaid += paidAmount;
+										}
+									}
+									
+									// Process pool balances
+									for (var b in bals[1]) {
+										if (Math.abs(b % 2) != 1) {
+											workerName = String(bals[1][b]);
+											workers[workerName] = (workers[workerName] || {});
+										} else {
+											var balAmount = parseFloat(bals[1][b]);
+											workers[workerName].balance = coinsRound(balAmount);
+											totalHeld += balAmount;
+										}
+									}
+									
+									// Process solo balances - ADD THIS
+									for (var b in soloBals[1]) {
+										if (Math.abs(b % 2) != 1) {
+											workerName = String(soloBals[1][b]);
+											workers[workerName] = (workers[workerName] || {});
+											workers[workerName].isSolo = true;
+										} else {
+											var balAmount = parseFloat(soloBals[1][b]);
+											workers[workerName].balance = (workers[workerName].balance || 0) + coinsRound(balAmount);
+											totalHeld += balAmount;
+										}
+									}
+									
+									// Process pool immature
+									for (var b in pends[1]) {
+										if (Math.abs(b % 2) != 1) {
+											workerName = String(pends[1][b]);
+											workers[workerName] = (workers[workerName] || {});
+										} else {
+											var pendingAmount = parseFloat(pends[1][b]);
+											workers[workerName].immature = coinsRound(pendingAmount);
+											totalImmature += pendingAmount;
+										}
+									}
+									
+									// Process solo immature - ADD THIS
+									for (var b in soloPends[1]) {
+										if (Math.abs(b % 2) != 1) {
+											workerName = String(soloPends[1][b]);
+											workers[workerName] = (workers[workerName] || {});
+											workers[workerName].isSolo = true;
+										} else {
+											var pendingAmount = parseFloat(soloPends[1][b]);
+											workers[workerName].immature = (workers[workerName].immature || 0) + coinsRound(pendingAmount);
+											totalImmature += pendingAmount;
+										}
+									}
 
-                        var workers = {};
+									for (var w in workers) {
+										balances.push({
+											worker: String(w),
+											balance: workers[w].balance,
+											paid: workers[w].paid,
+											immature: workers[w].immature,
+											isSolo: workers[w].isSolo || false
+										});
+									}
 
-                        for (var i in pays[1]) {
-                            if (Math.abs(i % 2) != 1) {
-                                workerName = String(pays[1][i]);
-                                workers[workerName] = (workers[workerName] || {});
-                            } else {
-                                paidAmount = parseFloat(pays[1][i]);
-                                workers[workerName].paid = coinsRound(paidAmount);
-                                totalPaid += paidAmount;
-                            }
-                        }
-                        for (var b in bals[1]) {
-                            if (Math.abs(b % 2) != 1) {
-                                workerName = String(bals[1][b]);
-                                workers[workerName] = (workers[workerName] || {});
-                            } else {
-                                balAmount = parseFloat(bals[1][b]);
-                                workers[workerName].balance = coinsRound(balAmount);
-                                totalHeld += balAmount;
-                            }
-                        }
-                        for (var b in pends[1]) {
-                            if (Math.abs(b % 2) != 1) {
-                                workerName = String(pends[1][b]);
-                                workers[workerName] = (workers[workerName] || {});
-                            } else {
-                                pendingAmount = parseFloat(pends[1][b]);
-                                workers[workerName].immature = coinsRound(pendingAmount);
-                                totalImmature += pendingAmount;
-                            }
-                        }
-
-                        for (var w in workers) {
-                            balances.push({
-                                worker:String(w),
-                                balance:workers[w].balance,
-                                paid:workers[w].paid,
-                                immature:workers[w].immature
-                            });
-                        }
-
-                        pcb();
-                    });
-                });
-            });
+									pcb();
+								});
+							});
+						});
+					});
+				});
+			});
 		}, function(err) {
 			if (err) {
 				callback("There was an error getting balances");
@@ -402,7 +467,6 @@ this.getBlocks = function (cback) {
 
 			_this.stats.balances = balances;
 			_this.stats.address = address;
-
 			cback({totalHeld:coinsRound(totalHeld), totalPaid:coinsRound(totalPaid), totalImmature:satoshisToCoins(totalImmature), balances});
 		});
 	};
