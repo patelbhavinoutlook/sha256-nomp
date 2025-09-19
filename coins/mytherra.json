@@ -9,7 +9,7 @@
   "versionRollingMinBits": 16,         										
   "asicboostMinDifficulty": 1000,     
   "asicboostMaxClients": 1000,         
-  "coinbase": "45.10.154.105",
+  "coinbase": "192.168.10.10",
   "txMessages": false,
   "segwit": true,
   "taproot": true,

@@ -23,7 +23,7 @@
 	"minimumPayment_solo": 1,
 	"maxBlocksPerPayment": 16,
       "daemon": {
-      "host": "45.10.154.105",
+      "host": "192.168.10.10",
       "port": 24013,
       "user": "user",
       "password": "password"
@@ -93,7 +93,7 @@
 
   "daemons": [
 	{
-      "host": "45.10.154.105",
+      "host": "192.168.10.10",
       "port": 24013,
       "user": "user",
       "password": "password"
