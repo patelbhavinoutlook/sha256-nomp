@@ -531,7 +531,7 @@ var startProfitSwitch = function () {
     worker.on('exit', function (code, signal) {
         logger.error('Master', 'Profit', 'Profit switching process died, spawning replacement...');
         setTimeout(function () {
-            startWebsite(portalConfig, poolConfigs);
+            startProfitSwitch();
         }, 2000);
     });
 };

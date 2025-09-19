@@ -7,8 +7,41 @@ module.exports = function(logger, portalConfig, poolConfigs){
     var portalStats = this.stats = new stats(logger, portalConfig, poolConfigs);
 
     this.liveStatConnections = {};
+    
+    // Rate limiting storage
+    var rateLimitStore = {};
+    var RATE_LIMIT_WINDOW = 60000; // 1 minute
+    var RATE_LIMIT_MAX_REQUESTS = 60; // 60 requests per minute
+    
+    // Input sanitization function
+    var sanitizeInput = function(input) {
+        if (typeof input !== 'string') return '';
+        return input.replace(/[^a-zA-Z0-9._-]/g, '').substring(0, 100);
+    };
+    
+    // Rate limiting function
+    var isRateLimited = function(ip) {
+        var now = Date.now();
+        var userRequests = rateLimitStore[ip] || { count: 0, resetTime: now + RATE_LIMIT_WINDOW };
+        
+        if (now > userRequests.resetTime) {
+            userRequests = { count: 1, resetTime: now + RATE_LIMIT_WINDOW };
+        } else {
+            userRequests.count++;
+        }
+        
+        rateLimitStore[ip] = userRequests;
+        return userRequests.count > RATE_LIMIT_MAX_REQUESTS;
+    };
 
     this.handleApiRequest = function(req, res, next){
+        
+        // Rate limiting check
+        var clientIp = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
+        if (isRateLimited(clientIp)) {
+            res.status(429).json({ error: 'Rate limit exceeded' });
+            return;
+        }
 
         switch(req.params.method){
             case 'stats':

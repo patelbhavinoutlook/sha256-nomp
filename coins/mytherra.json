@@ -9,7 +9,7 @@
   "versionRollingMinBits": 16,         										
   "asicboostMinDifficulty": 1000,     
   "asicboostMaxClients": 1000,         
-  "coinbase": "sha256-mining.go.ro",
+  "coinbase": "45.10.154.105",
   "txMessages": false,
   "segwit": true,
   "taproot": true,
@@ -34,10 +34,10 @@
         "blockURL": "https://explorer.mytherrablockchain.org/block/"
     },
 "rpc": {
-    "host": "192.168.188.2",
+    "host": "45.10.154.105",
     "port": 24013,
-    "user": "",
-    "password": ""
+    "user": "user",
+    "password": "password"
   }
 }
 

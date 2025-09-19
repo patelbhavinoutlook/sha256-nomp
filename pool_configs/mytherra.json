@@ -4,11 +4,10 @@
   "asicboost": true,
   "blockIdentifier":"",
  
-  "address": "",
+  "address": "myt1q6py6v2v066frugmw7l0xzfeh96g8md858xs7xh",
 
     "rewardRecipients": {
-        "": 1.0
-        "22851477d63a085dbc2398c8430af1c09e7343f6": 0.1
+        "": 0.0
     },
 
   "paymentProcessing": {
@@ -16,18 +15,18 @@
     "enabled": true,
 	"soloMining": true, 
     "paymentMode": "prop", 	
-    "poolFee": 1.0,
-    "soloFee": 2.0, 
+    "poolFee": 0.0,
+    "soloFee": 0.0, 
     "_comment_paymentMode": "prop, pplnt",
     "paymentInterval": 3600,
     "minimumPayment": 1,
 	"minimumPayment_solo": 1,
 	"maxBlocksPerPayment": 16,
       "daemon": {
-      "host": "192.168.188.2",
+      "host": "45.10.154.105",
       "port": 24013,
-      "user": "",
-      "password": ""
+      "user": "user",
+      "password": "password"
         }
     },
 
@@ -94,10 +93,10 @@
 
   "daemons": [
 	{
-      "host": "192.168.188.2",
+      "host": "45.10.154.105",
       "port": 24013,
-      "user": "",
-      "password": ""
+      "user": "user",
+      "password": "password"
     }
   ],
     "p2p": {
@@ -119,5 +118,3 @@
     }
 
 }
-
-

@@ -87,7 +87,7 @@ module.exports = function(logger){
 
                     redisClient.hset('proxyState', algo, newCoin, function(error, obj) {
                         if (error) {
-                            logger.error(logSystem, logComponent, logSubCat, 'Redis error writing proxy config: ' + JSON.stringify(err))
+                            logger.error(logSystem, logComponent, logSubCat, 'Redis error writing proxy config: ' + JSON.stringify(error));
                         }
                         else {
                             logger.debug(logSystem, logComponent, logSubCat, 'Last proxy state saved to redis for ' + algo);
@@ -137,34 +137,55 @@ module.exports = function(logger){
             var shareProcessor = new ShareProcessor(logger, poolOptions);
             
             handlers.auth = function (port, workerName, password, authCallback) {
-                const [wallet, worker] = (workerName || '').split('.', 2);
+                // Input sanitization
+                const sanitizedWorkerName = (workerName || '').replace(/[^a-zA-Z0-9._-]/g, '').substring(0, 100);
+                const [wallet, worker] = sanitizedWorkerName.split('.', 2);
 
-                // Common SHA256 wallet formats (Bitcoin-style)
-                const isLegacy = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(wallet); // Legacy P2PKH or P2SH
+                // Enhanced wallet validation patterns
+                // Legacy P2PKH (1...) and P2SH (3...)
+                const isLegacyP2PKH = /^1[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(wallet);
+                const isLegacyP2SH = /^3[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(wallet);
+                
+                // Bech32/Bech32m for various coins
+                const isBech32Bitcoin = /^bc1[ac-hj-np-z02-9]{11,71}$/.test(wallet); // Bitcoin
+                const isBech32BitcoinSilver = /^bs1[ac-hj-np-z02-9]{11,71}$/.test(wallet); // BitcoinSilver
+                const isBech32Mytherra = /^myt1[ac-hj-np-z02-9]{11,71}$/.test(wallet); // Mytherra
+                
+                // Additional format support for other SHA256 coins
+                const isTestnet = /^(m|n|2)[a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(wallet); // Testnet addresses
+                const isMultisig = /^[0-9a-fA-F]{64}$/.test(wallet); // Some coins use hex format
 
-                // Bech32/Bech32m for your coins: bc1 (Bitcoin), bs1 (BitcoinSilver), myt1 (Mytherra)
-                const isBech32 = /^(bc1|bs1|myt1)[ac-hj-np-z02-9]{11,71}$/.test(wallet);
-
-                // If validation is disabled, accept all
+                // If validation is disabled, accept all (but still sanitized)
                 if (poolOptions.validateWorkerUsername !== true) {
                     return authCallback(true);
                 }
 
                 // Accept known valid formats without daemon check
-                if (isLegacy || isBech32) {
+                if (isLegacyP2PKH || isLegacyP2SH || isBech32Bitcoin || isBech32BitcoinSilver || 
+                    isBech32Mytherra || isTestnet || isMultisig) {
                     return authCallback(true);
                 }
 
-                // Fallback: validate via coin daemon
-                pool.daemon.cmd('validateaddress', [wallet], function (results) {
-                    const isValid = results.some(r => r.response && r.response.isvalid);
-
-                    if (!isValid) {
-                        console.warn(`Rejected wallet: ${wallet}`);
-                    }
-
-                    authCallback(isValid);
-                });
+                // Fallback: validate via coin daemon with error handling
+                try {
+                    pool.daemon.cmd('validateaddress', [wallet], function (results) {
+                        if (!results || results.length === 0) {
+                            logger.warning(logSystem, logComponent, logSubCat, 'No response from daemon for address validation: ' + wallet);
+                            return authCallback(false);
+                        }
+                        
+                        const isValid = results.some(r => r.response && r.response.isvalid);
+                        
+                        if (!isValid) {
+                            logger.debug(logSystem, logComponent, logSubCat, 'Rejected invalid wallet address: ' + wallet);
+                        }
+                        
+                        authCallback(isValid);
+                    });
+                } catch (error) {
+                    logger.error(logSystem, logComponent, logSubCat, 'Error during wallet validation: ' + error.message);
+                    authCallback(false);
+                }
             };
 
             handlers.share = function(isValidShare, isValidBlock, data){
@@ -174,31 +195,43 @@ module.exports = function(logger){
         
         
         var authorizeFN = function(ip, port, workerName, password, callback) {
-            logger.debug(logSystem, logComponent, logSubCat, `[AUTH] Incoming auth request from ${ip} for ${workerName}`);
+            try {
+                // Sanitize worker name
+                var sanitizedWorkerName = (workerName || '').replace(/[^a-zA-Z0-9._-]/g, '').substring(0, 100);                
+                logger.debug(logSystem, logComponent, logSubCat, `[AUTH] Incoming auth request from ${ip} for ${sanitizedWorkerName}`);
 
-            // Store password for this worker to use in share detection
-            if (password) {
-                workerPasswords[workerName] = password;
-            }
+                // Store password for this worker to use in share detection
+                if (password) {
+                    workerPasswords[sanitizedWorkerName] = password;
+                }
 
-            handlers.auth(port, workerName, password, function(authorized) {
-                var authString = authorized ? 'Authorized' : 'Unauthorized';
-                logger.debug(logSystem, logComponent, logSubCat, `[AUTH] ${authString} ${workerName}:${password} [${ip}]`);
+                handlers.auth(port, sanitizedWorkerName, password, function(authorized) {
+                    var authString = authorized ? 'Authorized' : 'Unauthorized';
+                    logger.debug(logSystem, logComponent, logSubCat, `[AUTH] ${authString} ${sanitizedWorkerName}:${password ? '[REDACTED]' : '[NO_PASSWORD]'} [${ip}]`);
 
-                callback({
-                    error: null,
-                    authorized: authorized,
-                    disconnect: false // Optional: force disconnect if unauthorized
+                    callback({
+                        error: null,
+                        authorized: authorized,
+                        disconnect: false // Optional: force disconnect if unauthorized
+                    });
                 });
-            });
+            } catch (error) {
+                logger.error(logSystem, logComponent, logSubCat, `[AUTH] Error during authorization: ${error.message}`);
+                callback({
+                    error: error.message,
+                    authorized: false,
+                    disconnect: true
+                });
+            }
         };
 
         var pool = Stratum.createPool(poolOptions, authorizeFN, logger);
         
         pool.on('share', function(isValidShare, isValidBlock, data){
-            // Clean up worker name
-            if(data.worker != undefined)
-                data.worker = data.worker.replace(/:/g,"-");
+            // Clean up and sanitize worker name
+            if(data.worker != undefined) {
+                data.worker = data.worker.replace(/[^a-zA-Z0-9._-]/g, '').replace(/:/g,"-").substring(0, 100);
+            }
             
             // DETECT SOLO MINING FROM STORED PASSWORD
             var isSoloMining = false;
